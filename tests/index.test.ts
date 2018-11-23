@@ -1,5 +1,3 @@
-import { hello } from '../src'
-
 test('basic test', () => {
-  expect(hello()).toBe('hello world')
+  expect('hello world').toBe('hello world')
 })

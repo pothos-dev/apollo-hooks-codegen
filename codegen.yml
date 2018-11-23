@@ -1,0 +1,5 @@
+schema: ./tests/schema.graphql
+documents: ./tests/queries.graphql
+generates:
+  output.ts:
+    - /home/stargazer/code/apollo-hooks-codegen/dist/index.js

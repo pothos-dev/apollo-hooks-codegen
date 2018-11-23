@@ -4,9 +4,11 @@
     "module": "commonjs",
     "target": "es5",
     "jsx": "react",
+    "lib": ["esnext"],
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "noImplicitAny": true
   },
-  "include": ["./src/**/*", "./tests/**/*"]
+  "include": ["./src/**/*", "./tests/**/*", "dist/index.js", "index.js"],
+  "exclude": ["./tests"]
 }
