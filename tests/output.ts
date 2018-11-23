@@ -23,13 +23,14 @@ export const fetchVersion = queryFactory<
   {
     /* data */
     myRequiredString: string
-    myOptionalInt?: number
-    myType?: {
-      foo?: string
+    myOptionalInt?: null | number
+    myType?: null | {
+      foo?: null | string
       nested: {
-        bar?: number
+        bar?: null | number
       }
     }
+    myIntList?: null | Array<null | number>
   }
 >(gql`
   query fetchVersion {
@@ -42,6 +43,8 @@ export const fetchVersion = queryFactory<
         bar
       }
     }
+
+    myIntList
   }
 `)
 export const multiply = queryFactory<
@@ -49,15 +52,29 @@ export const multiply = queryFactory<
     /* variables */
     a: number
     b: number
-    printResult?: boolean | null
+    printResult?: null | boolean
   },
   {
     /* data */
-    multiply?: number
+    multiply?: null | number
   }
 >(gql`
   query multiply($a: Int!, $b: Float!, $printResult: Boolean) {
     multiply(a: $a, b: $b, printResult: $printResult)
+  }
+`)
+export const withList = queryFactory<
+  {
+    /* variables */
+    list: Array<null | number>
+  },
+  {
+    /* data */
+    accumulate: string
+  }
+>(gql`
+  query withList($list: [Int]!) {
+    accumulate(list: $list)
   }
 `)
 

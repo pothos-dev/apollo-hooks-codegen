@@ -23,6 +23,7 @@ import {
   TypeNode,
   NamedTypeNode,
   ListTypeNode,
+  GraphQLList,
 } from 'graphql'
 
 export interface PluginConfig {}
@@ -117,20 +118,16 @@ function formatVariableDefinition(node: VariableDefinitionNode) {
 }
 
 function formatTypeNode(node: TypeNode): string {
-  switch (node.kind) {
-    case 'NonNullType':
-      return formatTypeNodeNotNull(node.type)
-    case 'ListType':
-      return formatTypeNode(node.type) + '[]'
-    case 'NamedType':
-      return formatTypeNodeNotNull(node) + '| null'
+  if (node.kind == 'NonNullType') {
+    return formatTypeNodeNotNull(node.type)
   }
+  return 'null | ' + formatTypeNodeNotNull(node)
 }
 
 function formatTypeNodeNotNull(node: NamedTypeNode | ListTypeNode) {
   switch (node.kind) {
     case 'ListType':
-      return formatTypeNode(node.type) + '[]'
+      return 'Array<' + formatTypeNode(node.type) + '>'
     case 'NamedType':
       return formatNameTypeNode(node)
   }
@@ -203,15 +200,30 @@ function formatGraphQLOutputType(
   offset: string
 ): string {
   if (isNonNullType(type)) {
-    return formatGraphQLOutputType(type.ofType, selectionSet, offset)
+    return formatGraphQLOutputTypeNotNull(type.ofType, selectionSet, offset)
   }
+  return 'null | ' + formatGraphQLOutputTypeNotNull(type, selectionSet, offset)
+}
+
+function formatGraphQLOutputTypeNotNull(
+  type: GraphQLOutputType,
+  selectionSet: SelectionSetNode,
+  offset: string
+) {
   if (isScalarType(type)) {
     return formatGraphQLScalarType(type)
   }
   if (isObjectType(type)) {
     return formatGraphQLObjectType(type, selectionSet, offset)
   }
-  throw 'unhandled GraphQLOutputType ' + type
+  if (isListType(type)) {
+    return (
+      'Array<' +
+      formatGraphQLOutputType(type.ofType, selectionSet, offset) +
+      '>'
+    )
+  }
+  throw 'unhandled GraphQLOutputType "' + type + '"'
 }
 
 function formatGraphQLScalarType(type: GraphQLScalarType) {

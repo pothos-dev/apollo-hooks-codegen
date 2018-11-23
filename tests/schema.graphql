@@ -3,8 +3,10 @@ type Query {
   myOptionalInt: Int
 
   myType: MyType
+  myIntList: [Int]
 
   multiply(a: Int!, b: Float!, printResult: Boolean): Float
+  accumulate(list: [Int]): ID!
 }
 
 type MyType {

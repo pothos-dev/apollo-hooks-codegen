@@ -8,8 +8,14 @@ query fetchVersion {
       bar
     }
   }
+
+  myIntList
 }
 
 query multiply($a: Int!, $b: Float!, $printResult: Boolean) {
   multiply(a: $a, b: $b, printResult: $printResult)
+}
+
+query withList($list: [Int]!) {
+  accumulate(list: $list)
 }

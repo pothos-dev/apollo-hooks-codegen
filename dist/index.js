@@ -53,19 +53,15 @@ function formatVariableDefinition(node) {
     return (node.variable.name.value + questionMark + ': ' + formatTypeNode(node.type));
 }
 function formatTypeNode(node) {
-    switch (node.kind) {
-        case 'NonNullType':
-            return formatTypeNodeNotNull(node.type);
-        case 'ListType':
-            return formatTypeNode(node.type) + '[]';
-        case 'NamedType':
-            return formatTypeNodeNotNull(node) + '| null';
+    if (node.kind == 'NonNullType') {
+        return formatTypeNodeNotNull(node.type);
     }
+    return 'null | ' + formatTypeNodeNotNull(node);
 }
 function formatTypeNodeNotNull(node) {
     switch (node.kind) {
         case 'ListType':
-            return formatTypeNode(node.type) + '[]';
+            return 'Array<' + formatTypeNode(node.type) + '>';
         case 'NamedType':
             return formatNameTypeNode(node);
     }
@@ -114,15 +110,23 @@ function formatFieldNode(node, schemaObject, offset) {
 }
 function formatGraphQLOutputType(type, selectionSet, offset) {
     if (graphql_1.isNonNullType(type)) {
-        return formatGraphQLOutputType(type.ofType, selectionSet, offset);
+        return formatGraphQLOutputTypeNotNull(type.ofType, selectionSet, offset);
     }
+    return 'null | ' + formatGraphQLOutputTypeNotNull(type, selectionSet, offset);
+}
+function formatGraphQLOutputTypeNotNull(type, selectionSet, offset) {
     if (graphql_1.isScalarType(type)) {
         return formatGraphQLScalarType(type);
     }
     if (graphql_1.isObjectType(type)) {
         return formatGraphQLObjectType(type, selectionSet, offset);
     }
-    throw 'unhandled GraphQLOutputType ' + type;
+    if (graphql_1.isListType(type)) {
+        return ('Array<' +
+            formatGraphQLOutputType(type.ofType, selectionSet, offset) +
+            '>');
+    }
+    throw 'unhandled GraphQLOutputType "' + type + '"';
 }
 function formatGraphQLScalarType(type) {
     switch (type.name) {
