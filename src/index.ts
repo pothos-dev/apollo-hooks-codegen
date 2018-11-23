@@ -1,5 +1,4 @@
-import { CodegenPlugin, PluginFunction } from 'graphql-codegen-core'
-import gqlgen from 'graphql-code-generator'
+import { PluginFunction } from 'graphql-codegen-core'
 
 export interface PluginConfig {}
 
