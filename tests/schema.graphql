@@ -1,4 +1,15 @@
 type Query {
   myRequiredString: String!
   myOptionalInt: Int
+
+  myType: MyType
+}
+
+type MyType {
+  foo: String
+  nested: MyNestedType!
+}
+
+type MyNestedType {
+  bar: Float
 }

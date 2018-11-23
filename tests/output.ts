@@ -24,11 +24,24 @@ export const FetchVersion = queryFactory<
     /* data */
     myRequiredString: string
     myOptionalInt?: number
+    myType?: {
+      foo?: string
+      nested: {
+        bar?: number
+      }
+    }
   }
 >(gql`
   query FetchVersion {
     myRequiredString
     myOptionalInt
+
+    myType {
+      foo
+      nested {
+        bar
+      }
+    }
   }
 `)
 

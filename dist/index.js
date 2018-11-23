@@ -67,14 +67,17 @@ function formatFieldNode(node, schemaObject, offset) {
         aliasName +
         questionMark +
         ': ' +
-        formatGraphQLOutputType(schemaField.type));
+        formatGraphQLOutputType(schemaField.type, node.selectionSet, offset + '  '));
 }
-function formatGraphQLOutputType(type) {
+function formatGraphQLOutputType(type, selectionSet, offset) {
     if (graphql_1.isNonNullType(type)) {
-        return formatGraphQLOutputType(type.ofType);
+        return formatGraphQLOutputType(type.ofType, selectionSet, offset);
     }
     if (graphql_1.isScalarType(type)) {
         return formatGraphQLScalarType(type);
+    }
+    if (graphql_1.isObjectType(type)) {
+        return formatGraphQLObjectType(type, selectionSet, offset);
     }
     throw 'unhandled GraphQLOutputType ' + type;
 }
@@ -84,9 +87,21 @@ function formatGraphQLScalarType(type) {
             return 'string';
         case 'Int':
             return 'number';
+        case 'Float':
+            return 'number';
+        case 'Boolean':
+            return 'boolean';
+        case 'ID':
+            return 'string';
         default:
             throw 'unhandled GraphQLScalarType ' + type;
     }
+}
+function formatGraphQLObjectType(type, selectionSet, offset) {
+    var list = selectionSet.selections.map(function (selectionNode) {
+        return formatSelectionNode(selectionNode, type, offset);
+    });
+    return join.apply(void 0, ['{'].concat(list, ['}']));
 }
 function selectSchemaObject(schema, operation) {
     switch (operation) {

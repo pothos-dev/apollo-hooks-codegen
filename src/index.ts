@@ -18,6 +18,7 @@ import {
   isNonNullType,
   isScalarType,
   GraphQLScalarType,
+  isObjectType,
 } from 'graphql'
 
 export interface PluginConfig {}
@@ -136,16 +137,23 @@ function formatFieldNode(
     aliasName +
     questionMark +
     ': ' +
-    formatGraphQLOutputType(schemaField.type)
+    formatGraphQLOutputType(schemaField.type, node.selectionSet, offset + '  ')
   )
 }
 
-function formatGraphQLOutputType(type: GraphQLOutputType): string {
+function formatGraphQLOutputType(
+  type: GraphQLOutputType,
+  selectionSet: SelectionSetNode,
+  offset: string
+): string {
   if (isNonNullType(type)) {
-    return formatGraphQLOutputType(type.ofType)
+    return formatGraphQLOutputType(type.ofType, selectionSet, offset)
   }
   if (isScalarType(type)) {
     return formatGraphQLScalarType(type)
+  }
+  if (isObjectType(type)) {
+    return formatGraphQLObjectType(type, selectionSet, offset)
   }
   throw 'unhandled GraphQLOutputType ' + type
 }
@@ -156,9 +164,26 @@ function formatGraphQLScalarType(type: GraphQLScalarType) {
       return 'string'
     case 'Int':
       return 'number'
+    case 'Float':
+      return 'number'
+    case 'Boolean':
+      return 'boolean'
+    case 'ID':
+      return 'string'
     default:
       throw 'unhandled GraphQLScalarType ' + type
   }
+}
+
+function formatGraphQLObjectType(
+  type: GraphQLObjectType,
+  selectionSet: SelectionSetNode,
+  offset: string
+) {
+  const list = selectionSet.selections.map(selectionNode =>
+    formatSelectionNode(selectionNode, type, offset)
+  )
+  return join('{', ...list, '}')
 }
 
 function selectSchemaObject(
