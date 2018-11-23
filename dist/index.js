@@ -36,12 +36,55 @@ function formatOperationDefinition(node, schema) {
         ',' +
         formatSelectionSet(node.selectionSet, selectSchemaObject(schema, node.operation)) +
         '>(gql`\n' +
-        indent(node.loc.source.body, '  ') +
+        indent(formatLoc(node.loc), '  ') +
         '\n`)');
 }
+function formatLoc(loc) {
+    return loc.source.body.substring(loc.start, loc.end);
+}
 function formatVariableDefinitions(nodes) {
-    var list = nodes.map(function (node) { return JSON.stringify(node); });
+    var list = nodes.map(formatVariableDefinition);
     return join.apply(void 0, ['{', '  /* variables */'].concat(list, ['}']));
+}
+function formatVariableDefinition(node) {
+    // todo defaultValue
+    var isRequired = node.type.kind == 'NonNullType';
+    var questionMark = isRequired ? '' : '?';
+    return (node.variable.name.value + questionMark + ': ' + formatTypeNode(node.type));
+}
+function formatTypeNode(node) {
+    switch (node.kind) {
+        case 'NonNullType':
+            return formatTypeNodeNotNull(node.type);
+        case 'ListType':
+            return formatTypeNode(node.type) + '[]';
+        case 'NamedType':
+            return formatTypeNodeNotNull(node) + '| null';
+    }
+}
+function formatTypeNodeNotNull(node) {
+    switch (node.kind) {
+        case 'ListType':
+            return formatTypeNode(node.type) + '[]';
+        case 'NamedType':
+            return formatNameTypeNode(node);
+    }
+}
+function formatNameTypeNode(node) {
+    switch (node.name.value) {
+        case 'String':
+            return 'string';
+        case 'Int':
+            return 'number';
+        case 'Float':
+            return 'number';
+        case 'Boolean':
+            return 'boolean';
+        case 'ID':
+            return 'string';
+        default:
+            throw 'unhandled NamedTypeNode ' + node.name.value;
+    }
 }
 function formatSelectionSet(node, schemaObject) {
     var list = node.selections.map(function (selectionNode) {

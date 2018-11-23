@@ -3,6 +3,8 @@ type Query {
   myOptionalInt: Int
 
   myType: MyType
+
+  multiply(a: Int!, b: Float!, printResult: Boolean): Float
 }
 
 type MyType {

@@ -16,7 +16,7 @@ import gql from 'graphql-tag'
  * Operations from ./tests/queries.graphql
  */
 
-export const FetchVersion = queryFactory<
+export const fetchVersion = queryFactory<
   {
     /* variables */
   },
@@ -32,7 +32,7 @@ export const FetchVersion = queryFactory<
     }
   }
 >(gql`
-  query FetchVersion {
+  query fetchVersion {
     myRequiredString
     myOptionalInt
 
@@ -42,6 +42,22 @@ export const FetchVersion = queryFactory<
         bar
       }
     }
+  }
+`)
+export const multiply = queryFactory<
+  {
+    /* variables */
+    a: number
+    b: number
+    printResult?: boolean | null
+  },
+  {
+    /* data */
+    multiply?: number
+  }
+>(gql`
+  query multiply($a: Int!, $b: Float!, $printResult: Boolean) {
+    multiply(a: $a, b: $b, printResult: $printResult)
   }
 `)
 

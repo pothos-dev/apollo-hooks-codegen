@@ -19,6 +19,10 @@ import {
   isScalarType,
   GraphQLScalarType,
   isObjectType,
+  Location,
+  TypeNode,
+  NamedTypeNode,
+  ListTypeNode,
 } from 'graphql'
 
 export interface PluginConfig {}
@@ -85,16 +89,68 @@ function formatOperationDefinition(
       selectSchemaObject(schema, node.operation)
     ) +
     '>(gql`\n' +
-    indent(node.loc.source.body, '  ') +
+    indent(formatLoc(node.loc), '  ') +
     '\n`)'
   )
+}
+
+function formatLoc(loc: Location) {
+  return loc.source.body.substring(loc.start, loc.end)
 }
 
 function formatVariableDefinitions(
   nodes: ReadonlyArray<VariableDefinitionNode>
 ) {
-  const list = nodes.map(node => JSON.stringify(node))
+  const list = nodes.map(formatVariableDefinition)
   return join('{', '  /* variables */', ...list, '}')
+}
+
+function formatVariableDefinition(node: VariableDefinitionNode) {
+  // todo defaultValue
+
+  const isRequired = node.type.kind == 'NonNullType'
+  const questionMark = isRequired ? '' : '?'
+
+  return (
+    node.variable.name.value + questionMark + ': ' + formatTypeNode(node.type)
+  )
+}
+
+function formatTypeNode(node: TypeNode): string {
+  switch (node.kind) {
+    case 'NonNullType':
+      return formatTypeNodeNotNull(node.type)
+    case 'ListType':
+      return formatTypeNode(node.type) + '[]'
+    case 'NamedType':
+      return formatTypeNodeNotNull(node) + '| null'
+  }
+}
+
+function formatTypeNodeNotNull(node: NamedTypeNode | ListTypeNode) {
+  switch (node.kind) {
+    case 'ListType':
+      return formatTypeNode(node.type) + '[]'
+    case 'NamedType':
+      return formatNameTypeNode(node)
+  }
+}
+
+function formatNameTypeNode(node: NamedTypeNode) {
+  switch (node.name.value) {
+    case 'String':
+      return 'string'
+    case 'Int':
+      return 'number'
+    case 'Float':
+      return 'number'
+    case 'Boolean':
+      return 'boolean'
+    case 'ID':
+      return 'string'
+    default:
+      throw 'unhandled NamedTypeNode ' + node.name.value
+  }
 }
 
 function formatSelectionSet(

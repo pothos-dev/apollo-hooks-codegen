@@ -1,4 +1,4 @@
-query FetchVersion {
+query fetchVersion {
   myRequiredString
   myOptionalInt
 
@@ -8,4 +8,8 @@ query FetchVersion {
       bar
     }
   }
+}
+
+query multiply($a: Int!, $b: Float!, $printResult: Boolean) {
+  multiply(a: $a, b: $b, printResult: $printResult)
 }
