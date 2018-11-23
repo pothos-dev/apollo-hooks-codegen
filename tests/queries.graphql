@@ -1,3 +1,4 @@
 query FetchVersion {
-  version
+  myRequiredString
+  myOptionalInt
 }

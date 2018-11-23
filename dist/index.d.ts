@@ -1,4 +1,4 @@
-import { PluginFunction } from 'graphql-codegen-core';
+import { DocumentFile, GraphQLSchema } from 'graphql-codegen-core';
 export interface PluginConfig {
 }
-export declare const plugin: PluginFunction<PluginConfig>;
+export declare function plugin(schema: GraphQLSchema, documents: DocumentFile[], config: PluginConfig): string;
