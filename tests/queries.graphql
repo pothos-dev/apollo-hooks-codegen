@@ -19,3 +19,9 @@ query multiply($a: Int!, $b: Float!, $printResult: Boolean) {
 query withList($list: [Int]!) {
   accumulate(list: $list)
 }
+
+mutation mutateItBaby($input: MyInputType) {
+  doSomething(input: $input) {
+    foo
+  }
+}

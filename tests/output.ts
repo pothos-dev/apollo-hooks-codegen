@@ -16,7 +16,7 @@ import gql from 'graphql-tag'
  * Operations from ./tests/queries.graphql
  */
 
-export const fetchVersion = queryFactory<
+export const fetchVersion = defineQuery<
   {
     /* variables */
   },
@@ -47,7 +47,8 @@ export const fetchVersion = queryFactory<
     myIntList
   }
 `)
-export const multiply = queryFactory<
+
+export const multiply = defineQuery<
   {
     /* variables */
     a: number
@@ -63,7 +64,8 @@ export const multiply = queryFactory<
     multiply(a: $a, b: $b, printResult: $printResult)
   }
 `)
-export const withList = queryFactory<
+
+export const withList = defineQuery<
   {
     /* variables */
     list: Array<null | number>
@@ -78,50 +80,112 @@ export const withList = queryFactory<
   }
 `)
 
+export const mutateItBaby = defineMutation<
+  {
+    /* variables */
+    input?: null | MyInputType
+  },
+  {
+    /* data */
+    doSomething?: null | {
+      foo?: null | string
+    }
+  }
+>(gql`
+  mutation mutateItBaby($input: MyInputType) {
+    doSomething(input: $input) {
+      foo
+    }
+  }
+`)
+
+/*
+ * GraphQL InputTypes
+ */
+
+interface MyInputType {
+  anIntMaybe?: number
+  aString: String
+  aNestedObjectMaybe?: MyNestedInputType
+  aNestedObject: MyNestedInputType
+}
+
+interface MyNestedInputType {
+  itsRecursive?: MyNestedInputType
+}
+
 /*
  * Boilerplate
  */
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
+type Error = any
 
+// We grab the ApolloClient from this context within our hooks
 const apolloContext = createContext<{ apolloClient?: ApolloClient<any> }>({})
 
-export function useApolloWatchQuery<Data, Variables>(
-  queryFactory: (
-    apolloClient: ApolloClient<any>
-  ) => ObservableQuery<Data, Variables>
-): Data | undefined {
-  const { apolloClient } = useContext(apolloContext)
-  const [state, setState] = useState<Data | undefined>(undefined)
-  useEffect(() => {
-    const watchQuery = queryFactory(apolloClient)
-    const subscription = watchQuery.subscribe(result => setState(result.data))
-    return () => subscription.unsubscribe()
-  }, [])
-  return state
-}
-
-// export function useApolloMutation<Data, Variables>(
-//   mutationFactory: (
-//     apolloClient: ApolloClient<any>
-//     ) => ObservableQuery<Data, Variables>
-// )
-
-function queryFactory<Variables, Data>(doc: DocumentNode) {
-  return function(options: Omit<WatchQueryOptions<Variables>, 'query'> = {}) {
-    return function(apolloClient: ApolloClient<any>) {
+// Converts a gql-snippet into a user-callable function that takes options,
+// which can then be passed to useApolloWatchQuery to execute the query.
+function defineQuery<Variables, Data>(doc: DocumentNode) {
+  return function configureQuery(
+    options: Omit<WatchQueryOptions<Variables>, 'query'> = {}
+  ) {
+    return function executeQuery(apolloClient: ApolloClient<any>) {
       return apolloClient.watchQuery<Data>({ query: doc, ...options })
     }
   }
 }
 
-// function mutationFactory<Variables, Data>(mutation: DocumentNode) {
-//   return function(
-//     options: Omit<MutationOptions<Data, Variables>, 'mutation'> = {}
-//   ) {
-//     return async function(apolloClient: ApolloClient<any>) {
-//       const result = await apolloClient.mutate<Data>({ mutation, ...options })
-//       return result.data as Data
-//     }
-//   }
-// }
+// Executes a query that has been created by calling the exported function with
+// the same name as the query operation.
+// The React Hooks rules apply - this function must be called unconditionally
+// within a functional React Component and will rerender the component whenever
+// the query result changes.
+export function useApolloWatchQuery<Data, Variables>(
+  configuredQuery: (
+    apolloClient: ApolloClient<any>
+  ) => ObservableQuery<Data, Variables>
+): [Data | undefined, Error | undefined] {
+  const { apolloClient } = useContext(apolloContext)
+  const watchQuery = configuredQuery(apolloClient)
+
+  const [data, setData] = useState<Data | undefined>(undefined)
+  const [error, setError] = useState<Error | undefined>(undefined)
+  useEffect(() => {
+    const subscription = watchQuery.subscribe(
+      result => setData(result.data),
+      error => setError(error)
+    )
+    return () => subscription.unsubscribe()
+  }, [])
+
+  return [data, error]
+}
+
+// Converts a gql-snippet into a user-callable function that takes options,
+// which can then be passed to useApolloMutation to provide the mutate function.
+function defineMutation<Variables, Data>(mutation: DocumentNode) {
+  return function configureMutation(
+    options: Omit<MutationOptions<Data, Variables>, 'mutation'> = {}
+  ) {
+    return function loadMutation(apolloClient: ApolloClient<any>) {
+      return function executeMutation() {
+        return apolloClient.mutate<Data>({ mutation, ...options })
+      }
+    }
+  }
+}
+
+// Prepares a mutate function when supplied with the exported function with
+// the same name as the mutation operation.
+// The React Hooks rules apply - this function must be called unconditionally
+// within a functional React Component.
+export function useApolloMutation<Data, Variables>(
+  configuredMutation: (
+    apolloClient: ApolloClient<any>
+  ) => ObservableQuery<Data, Variables>
+) {
+  const { apolloClient } = useContext(apolloContext)
+  const mutate = configuredMutation(apolloClient)
+  return mutate
+}

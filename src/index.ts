@@ -24,6 +24,12 @@ import {
   NamedTypeNode,
   ListTypeNode,
   GraphQLList,
+  GraphQLInputObjectType,
+  isInputType,
+  isInputObjectType,
+  GraphQLInputType,
+  GraphQLInputField,
+  isEnumType,
 } from 'graphql'
 
 export interface PluginConfig {}
@@ -33,19 +39,116 @@ export function plugin(
   documents: DocumentFile[],
   config: PluginConfig
 ) {
-  schema.getQueryType()
+  const inputNames: InputNames = {}
 
   return join(
     disclaimer,
     imports,
     '',
-    ...documents.map(documentFile => formatDocumentFile(documentFile, schema)),
+    ...documents.map(documentFile =>
+      formatDocumentFile(documentFile, schema, inputNames)
+    ),
     '',
+    formatInputNames(schema, inputNames),
     boilerplate
   )
 }
 
-function formatDocumentFile(file: DocumentFile, schema: GraphQLSchema) {
+function formatInputNames(schema: GraphQLSchema, inputNames: InputNames) {
+  findRecursiveInputReferences(schema, inputNames, Object.keys(inputNames))
+
+  return join(
+    '/*',
+    ' * GraphQL InputTypes',
+    ' */',
+    '',
+    ...Object.keys(inputNames).map(name => {
+      const node = schema.getType(name) as GraphQLInputObjectType
+      return formatGraphQLInputObjectType(node)
+    })
+  )
+}
+
+function findRecursiveInputReferences(
+  schema: GraphQLSchema,
+  inputNames: InputNames,
+  newNames: string[]
+) {
+  if (newNames.length == 0) return
+
+  const newNames2: string[] = []
+
+  for (const name of newNames) {
+    const node = schema.getType(name) as GraphQLInputObjectType
+    const fieldMap = node.getFields()
+    const fields = Object.values(fieldMap)
+    for (const field of fields) {
+      handleInputType(field.type)
+    }
+  }
+
+  findRecursiveInputReferences(schema, inputNames, newNames2)
+
+  function handleInputType(node: GraphQLInputType) {
+    if (isNonNullType(node)) {
+      handleInputType(node.ofType)
+      return
+    }
+    if (isListType(node)) {
+      handleInputType(node.ofType)
+      return
+    }
+    if (isInputObjectType(node)) {
+      if (!inputNames[node.name]) {
+        inputNames[node.name] = true
+        newNames2.push(node.name)
+      }
+      return
+    }
+  }
+}
+
+function formatGraphQLInputObjectType(node: GraphQLInputObjectType) {
+  const fieldMap = node.getFields()
+  const fields = Object.values(fieldMap)
+  return join(
+    'interface ' + node.name + '{',
+    ...fields.map(field => formatInputField(field)),
+    '}\n'
+  )
+}
+
+function formatInputField(field: GraphQLInputField) {
+  const isRequired = isNonNullType(field.type)
+  const questionMark = isRequired ? '' : '?'
+  return field.name + questionMark + ': ' + formatInputType(field.type)
+}
+
+function formatInputType(node: GraphQLInputType) {
+  if (isNonNullType(node)) {
+    return node.ofType
+  }
+  if (isListType(node)) {
+    return 'ReadonlyArray<' + node.ofType + '>'
+  }
+  if (isEnumType(node)) {
+    // ! TODO
+    throw 'Unhandled GraphQLEnumType in formatInputType'
+  }
+  if (isScalarType(node)) {
+    return formatGraphQLScalarType(node)
+  }
+  if (isInputObjectType(node)) {
+    return node.name
+  }
+  throw 'Unhandled GraphQLInputType'
+}
+
+function formatDocumentFile(
+  file: DocumentFile,
+  schema: GraphQLSchema,
+  inputNames: InputNames
+) {
   return join(
     '',
     '',
@@ -53,20 +156,28 @@ function formatDocumentFile(file: DocumentFile, schema: GraphQLSchema) {
     ' * Operations from ' + file.filePath,
     ' */',
     '',
-    formatDocumentNode(file.content, schema)
+    formatDocumentNode(file.content, schema, inputNames)
   )
 }
 
-function formatDocumentNode(node: DocumentNode, schema: GraphQLSchema) {
+function formatDocumentNode(
+  node: DocumentNode,
+  schema: GraphQLSchema,
+  inputNames: InputNames
+) {
   return node.definitions
-    .map(definitionNode => formatDefinition(definitionNode, schema))
+    .map(definitionNode => formatDefinition(definitionNode, schema, inputNames))
     .join('\n')
 }
 
-function formatDefinition(node: DefinitionNode, schema: GraphQLSchema) {
+function formatDefinition(
+  node: DefinitionNode,
+  schema: GraphQLSchema,
+  inputNames: InputNames
+) {
   switch (node.kind) {
     case 'OperationDefinition':
-      return formatOperationDefinition(node, schema)
+      return formatOperationDefinition(node, schema, inputNames)
     default:
       throw 'unhandled DefinitionNode.kind = ' + node.kind
   }
@@ -74,16 +185,16 @@ function formatDefinition(node: DefinitionNode, schema: GraphQLSchema) {
 
 function formatOperationDefinition(
   node: OperationDefinitionNode,
-  schema: GraphQLSchema
+  schema: GraphQLSchema,
+  inputNames: InputNames
 ) {
   return (
     'export const ' +
     node.name.value +
     ' = ' +
-    node.operation +
-    'Factory' +
+    definerFunction(node.operation) +
     '<' +
-    formatVariableDefinitions(node.variableDefinitions) +
+    formatVariableDefinitions(node.variableDefinitions, inputNames) +
     ',' +
     formatSelectionSet(
       node.selectionSet,
@@ -91,8 +202,19 @@ function formatOperationDefinition(
     ) +
     '>(gql`\n' +
     indent(formatLoc(node.loc), '  ') +
-    '\n`)'
+    '\n`)\n'
   )
+
+  function definerFunction(operation: OperationTypeNode) {
+    switch (operation) {
+      case 'query':
+        return 'defineQuery'
+      case 'mutation':
+        return 'defineMutation'
+      case 'subscription':
+        throw 'TODO'
+    }
+  }
 }
 
 function formatLoc(loc: Location) {
@@ -100,40 +222,52 @@ function formatLoc(loc: Location) {
 }
 
 function formatVariableDefinitions(
-  nodes: ReadonlyArray<VariableDefinitionNode>
+  nodes: ReadonlyArray<VariableDefinitionNode>,
+  inputNames: InputNames
 ) {
-  const list = nodes.map(formatVariableDefinition)
+  const list = nodes.map(variableNode =>
+    formatVariableDefinition(variableNode, inputNames)
+  )
   return join('{', '  /* variables */', ...list, '}')
 }
 
-function formatVariableDefinition(node: VariableDefinitionNode) {
+function formatVariableDefinition(
+  node: VariableDefinitionNode,
+  inputNames: InputNames
+) {
   // todo defaultValue
 
   const isRequired = node.type.kind == 'NonNullType'
   const questionMark = isRequired ? '' : '?'
 
   return (
-    node.variable.name.value + questionMark + ': ' + formatTypeNode(node.type)
+    node.variable.name.value +
+    questionMark +
+    ': ' +
+    formatTypeNode(node.type, inputNames)
   )
 }
 
-function formatTypeNode(node: TypeNode): string {
+function formatTypeNode(node: TypeNode, inputNames: InputNames): string {
   if (node.kind == 'NonNullType') {
-    return formatTypeNodeNotNull(node.type)
+    return formatTypeNodeNotNull(node.type, inputNames)
   }
-  return 'null | ' + formatTypeNodeNotNull(node)
+  return 'null | ' + formatTypeNodeNotNull(node, inputNames)
 }
 
-function formatTypeNodeNotNull(node: NamedTypeNode | ListTypeNode) {
+function formatTypeNodeNotNull(
+  node: NamedTypeNode | ListTypeNode,
+  inputNames: InputNames
+) {
   switch (node.kind) {
     case 'ListType':
-      return 'Array<' + formatTypeNode(node.type) + '>'
+      return 'Array<' + formatTypeNode(node.type, inputNames) + '>'
     case 'NamedType':
-      return formatNameTypeNode(node)
+      return formatNameTypeNode(node, inputNames)
   }
 }
 
-function formatNameTypeNode(node: NamedTypeNode) {
+function formatNameTypeNode(node: NamedTypeNode, inputNames: InputNames) {
   switch (node.name.value) {
     case 'String':
       return 'string'
@@ -146,7 +280,8 @@ function formatNameTypeNode(node: NamedTypeNode) {
     case 'ID':
       return 'string'
     default:
-      throw 'unhandled NamedTypeNode ' + node.name.value
+      inputNames[node.name.value] = true
+      return node.name.value
   }
 }
 
@@ -292,49 +427,76 @@ const boilerplate = `
  */
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
+type Error = any
 
+// We grab the ApolloClient from this context within our hooks
 const apolloContext = createContext<{ apolloClient?: ApolloClient<any> }>({})
 
-export function useApolloWatchQuery<Data, Variables>(
-  queryFactory: (
-    apolloClient: ApolloClient<any>
-  ) => ObservableQuery<Data, Variables>
-): Data | undefined {
-  const { apolloClient } = useContext(apolloContext)
-  const [state, setState] = useState<Data | undefined>(undefined)
-  useEffect(() => {
-    const watchQuery = queryFactory(apolloClient)
-    const subscription = watchQuery.subscribe(result => setState(result.data))
-    return () => subscription.unsubscribe()
-  }, [])
-  return state
-}
-
-// export function useApolloMutation<Data, Variables>(
-//   mutationFactory: (
-//     apolloClient: ApolloClient<any>
-//     ) => ObservableQuery<Data, Variables>
-// )
-
-function queryFactory<Variables, Data>(doc: DocumentNode) {
-  return function(options: Omit<WatchQueryOptions<Variables>, 'query'> = {}) {
-    return function(apolloClient: ApolloClient<any>) {
+// Converts a gql-snippet into a user-callable function that takes options,
+// which can then be passed to useApolloWatchQuery to execute the query.
+function defineQuery<Variables, Data>(doc: DocumentNode) {
+  return function configureQuery(
+    options: Omit<WatchQueryOptions<Variables>, 'query'> = {}
+  ) {
+    return function executeQuery(apolloClient: ApolloClient<any>) {
       return apolloClient.watchQuery<Data>({ query: doc, ...options })
     }
   }
 }
 
-// function mutationFactory<Variables, Data>(mutation: DocumentNode) {
-//   return function(
-//     options: Omit<MutationOptions<Data, Variables>, 'mutation'> = {}
-//   ) {
-//     return async function(apolloClient: ApolloClient<any>) {
-//       const result = await apolloClient.mutate<Data>({ mutation, ...options })
-//       return result.data as Data
-//     }
-//   }
-// }
+// Executes a query that has been created by calling the exported function with
+// the same name as the query operation.
+// The React Hooks rules apply - this function must be called unconditionally
+// within a functional React Component and will rerender the component whenever
+// the query result changes.
+export function useApolloWatchQuery<Data, Variables>(
+  configuredQuery: (
+    apolloClient: ApolloClient<any>
+  ) => ObservableQuery<Data, Variables>
+): [Data | undefined, Error | undefined] {
+  const { apolloClient } = useContext(apolloContext)
+  const watchQuery = configuredQuery(apolloClient)
 
+  const [data, setData] = useState<Data | undefined>(undefined)
+  const [error, setError] = useState<Error | undefined>(undefined)
+  useEffect(() => {
+    const subscription = watchQuery.subscribe(
+      result => setData(result.data),
+      error => setError(error)
+    )
+    return () => subscription.unsubscribe()
+  }, [])
+
+  return [data, error]
+}
+
+// Converts a gql-snippet into a user-callable function that takes options,
+// which can then be passed to useApolloMutation to provide the mutate function.
+function defineMutation<Variables, Data>(mutation: DocumentNode) {
+  return function configureMutation(
+    options: Omit<MutationOptions<Data, Variables>, 'mutation'> = {}
+  ) {
+    return function loadMutation(apolloClient: ApolloClient<any>) {
+      return function executeMutation() {
+        return apolloClient.mutate<Data>({ mutation, ...options })
+      }
+    }
+  }
+}
+
+// Prepares a mutate function when supplied with the exported function with
+// the same name as the mutation operation.
+// The React Hooks rules apply - this function must be called unconditionally
+// within a functional React Component.
+export function useApolloMutation<Data, Variables>(
+  configuredMutation: (
+    apolloClient: ApolloClient<any>
+  ) => ObservableQuery<Data, Variables>
+) {
+  const { apolloClient } = useContext(apolloContext)
+  const mutate = configuredMutation(apolloClient)
+  return mutate
+}
 `
 
 function join(...lines: string[]) {
@@ -348,3 +510,5 @@ function indent(multilineText: string, offset: string) {
     .map(line => offset + line)
     .join('\n')
 }
+
+type InputNames = { [name: string]: boolean }

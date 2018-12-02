@@ -9,6 +9,10 @@ type Query {
   accumulate(list: [Int]): ID!
 }
 
+type Mutation {
+  doSomething(input: MyInputType): MyType
+}
+
 type MyType {
   foo: String
   nested: MyNestedType!
@@ -16,4 +20,15 @@ type MyType {
 
 type MyNestedType {
   bar: Float
+}
+
+input MyInputType {
+  anIntMaybe: Int
+  aString: String!
+  aNestedObjectMaybe: MyNestedInputType
+  aNestedObject: MyNestedInputType!
+}
+
+input MyNestedInputType {
+  itsRecursive: MyNestedInputType
 }
