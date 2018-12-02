@@ -1,7 +1,16 @@
 {
   "name": "apollo-hooks-codegen",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "A plugin for graphql-code-generator to create fully typed React Hooks from GraphQL queries, mutations and subscriptions.",
+  "keywords": [
+    "react",
+    "hooks",
+    "graphql",
+    "apollo",
+    "codegen",
+    "graphql-code-generator",
+    "typescript"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -12,7 +21,7 @@
   },
   "author": "pancomputationalist@mailbox.org",
   "license": "ISC",
-  "dependencies": {
+  "peerDependencies": {
     "graphql": "^14.0.2",
     "graphql-code-generator": "^0.14.1",
     "react": "^16.7.0-alpha.2"
