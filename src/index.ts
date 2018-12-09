@@ -456,7 +456,6 @@ export function ApolloHooksProvider({
   const elementProps: React.ProviderProps<ContextType> = {
     value: { apolloClient },
   }
-  const Provider = apolloContext.Provider
   return React.createElement(elementType, elementProps, children)
 }
 
@@ -515,7 +514,7 @@ function defineMutation<V, D>(mutation: DocumentNode) {
 export function useApolloMutation<D, V>(
   configuredMutation: (
     client: ApolloClient<any>
-  ) => (opts: MutateOpts<D, V>) => Promise<FetchResult<D>>
+  ) => (opts?: MutateOpts<D, V>) => Promise<FetchResult<D>>
 ) {
   const { apolloClient } = useContext(apolloContext)
   if (!apolloClient) throw 'No ApolloClient provided'
