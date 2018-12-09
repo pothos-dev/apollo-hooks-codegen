@@ -358,6 +358,10 @@ function formatGraphQLOutputTypeNotNull(
       '>'
     )
   }
+  if (isEnumType(type)) {
+    const enumValues = type.getValues()
+    return enumValues.map(value => "'" + value.name + "'").join(' | ')
+  }
   throw 'unhandled GraphQLOutputType "' + type + '"'
 }
 
@@ -430,7 +434,7 @@ type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 type Error = any
 
 // We grab the ApolloClient from this context within our hooks
-const apolloContext = createContext<{ apolloClient?: ApolloClient<any> }>({})
+const apolloContext = createContext<{ apolloClient: ApolloClient<any> }>({})
 
 // Converts a gql-snippet into a user-callable function that takes options,
 // which can then be passed to useApolloWatchQuery to execute the query.
