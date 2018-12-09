@@ -417,13 +417,14 @@ const disclaimer = `
 `
 
 const imports = `
-import React from 'react'
+import * as React from 'react'
+import { createContext, useEffect, useState, useContext } from 'react'
 import ApolloClient, {
   MutationOptions,
   ObservableQuery,
   WatchQueryOptions,
 } from 'apollo-client'
-import { createContext, useEffect, useState, useContext } from 'react'
+import { FetchResult } from 'apollo-link'
 import { DocumentNode } from 'graphql'
 import gql from 'graphql-tag'
 `
