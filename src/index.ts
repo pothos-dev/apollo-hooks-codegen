@@ -57,6 +57,8 @@ export function plugin(
 function formatInputNames(schema: GraphQLSchema, inputNames: InputNames) {
   findRecursiveInputReferences(schema, inputNames, Object.keys(inputNames))
 
+  if (Object.keys(inputNames).length == 0) return ''
+
   return join(
     '/*',
     ' * GraphQL InputTypes',
