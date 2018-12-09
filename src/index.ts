@@ -417,6 +417,7 @@ const disclaimer = `
 `
 
 const imports = `
+import React from 'react'
 import ApolloClient, {
   MutationOptions,
   ObservableQuery,
