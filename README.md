@@ -61,7 +61,7 @@ generates:
 }
 ```
 
-You're now ready to set up your ApolloClient.
+We're now ready to set up our ApolloClient.
 
 ```typescript
 const apolloClient = new ApolloClient({
@@ -73,7 +73,7 @@ const apolloClient = new ApolloClient({
 })
 ```
 
-You also need to add an ApolloHooksProvider somewhere at the root of your component tree to pass the ApolloClient to the components that will be using our hooks.
+We also need to add an ApolloHooksProvider somewhere at the root of our component tree to pass the ApolloClient to the components that will be using our hooks.
 
 ```tsx
 import { ApolloHooksProvider } from './graphql.generated.ts'
@@ -87,7 +87,7 @@ function App() {
 }
 ```
 
-Now you're ready to use the hooks that we've already generated.
+Now we're ready to use the hooks that we've already generated.
 
 ```tsx
 import { useApolloQuery, fetchProducts } from './graphql.generated.ts'
