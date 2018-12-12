@@ -24,8 +24,8 @@ Now we can start writing GraphQL code. For this example, I'm using the [fakerql.
 
 ```graphql
 # /src/example.gql
-mutation login {
-  login(email: "Bla", password: "Blub") {
+mutation login($email: String!, $password: String!) {
+  login(email: $email, password: $password) {
     token
   }
 }
