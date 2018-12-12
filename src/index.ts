@@ -460,7 +460,7 @@ export function ApolloHooksProvider({
 }
 
 // Converts a gql-snippet into a user-callable function that takes options,
-// which can then be passed to useApolloWatchQuery to execute the query.
+// which can then be passed to useApolloQuery to execute the query.
 function defineQuery<V, D>(doc: DocumentNode) {
   return function configureQuery(opts: QueryOpts<V> = {}) {
     return function executeQuery(client: ApolloClient<any>) {
@@ -474,7 +474,7 @@ function defineQuery<V, D>(doc: DocumentNode) {
 // The React Hooks rules apply - this function must be called unconditionally
 // within a functional React Component and will rerender the component whenever
 // the query result changes.
-export function useApolloWatchQuery<D, V>(
+export function useApolloQuery<D, V>(
   configuredQuery: (client: ApolloClient<any>) => ObservableQuery<D, V>
 ): [D | undefined, Error | undefined] {
   const { apolloClient } = useContext(apolloContext)
