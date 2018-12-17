@@ -147,6 +147,8 @@ function LoginButton() {
 
 - Input Scalar Types
 - Custom ID Type
+- return FetchResult instead of [data,error]
+- Suspense support
 - Subscriptions
 - Default values
 - Input Enum Types
