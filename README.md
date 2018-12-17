@@ -145,6 +145,8 @@ function LoginButton() {
 
 ## Todos
 
+- Input Scalar Types
+- Custom ID Type
 - Subscriptions
 - Default values
 - Input Enum Types
