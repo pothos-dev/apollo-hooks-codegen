@@ -52,11 +52,11 @@ generates:
 ```
 
 ```json5
+// package.json
 {
-  // package.json
   scripts: {
-    codegen: 'gql-gen',
-    'codegen:watch': 'nodemon -w *.gql -x npm run codegen',
+    "codegen": "gql-gen",
+    "codegen:watch": "nodemon -e gql -x npm run codegen",
   },
 }
 ```
