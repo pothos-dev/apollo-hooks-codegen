@@ -145,6 +145,7 @@ function LoginButton() {
 
 ## Todos
 
+- Named Interfaces for Data and Variables
 - Input Scalar Types
 - Custom ID Type
 - return FetchResult instead of [data,error]
