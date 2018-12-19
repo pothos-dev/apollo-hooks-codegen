@@ -32,380 +32,364 @@ import {
   isEnumType,
 } from 'graphql'
 
-export interface PluginConfig {}
+export interface PluginConfig {
+  idType?: string
+  scalarTypes?: { [scalarName: string]: string }
+}
 
 export function plugin(
   schema: GraphQLSchema,
   documents: DocumentFile[],
   config: PluginConfig
 ) {
-  const inputNames: InputNames = {}
+  const inputTypeNames: InputTypeNames = {}
 
   return join(
     disclaimer,
     imports,
     '',
-    ...documents.map(documentFile =>
-      formatDocumentFile(documentFile, schema, inputNames)
-    ),
+    ...documents.map(documentFile => formatDocumentFile(documentFile)),
     '',
-    formatInputNames(schema, inputNames),
+    formatInputNames(),
     boilerplate
   )
-}
 
-function formatInputNames(schema: GraphQLSchema, inputNames: InputNames) {
-  findRecursiveInputReferences(schema, inputNames, Object.keys(inputNames))
+  function formatInputNames() {
+    findRecursiveInputReferences(Object.keys(inputTypeNames))
 
-  if (Object.keys(inputNames).length == 0) return ''
+    if (Object.keys(inputTypeNames).length == 0) return ''
 
-  return join(
-    '/*',
-    ' * GraphQL InputTypes',
-    ' */',
-    '',
-    ...Object.keys(inputNames).map(name => {
-      const node = schema.getType(name) as GraphQLInputObjectType
-      return formatGraphQLInputObjectType(node)
-    })
-  )
-}
-
-function findRecursiveInputReferences(
-  schema: GraphQLSchema,
-  inputNames: InputNames,
-  newNames: string[]
-) {
-  if (newNames.length == 0) return
-
-  const newNames2: string[] = []
-
-  for (const name of newNames) {
-    const node = schema.getType(name) as GraphQLInputObjectType
-    const fieldMap = node.getFields()
-    const fields = Object.values(fieldMap)
-    for (const field of fields) {
-      handleInputType(field.type)
-    }
-  }
-
-  findRecursiveInputReferences(schema, inputNames, newNames2)
-
-  function handleInputType(node: GraphQLInputType) {
-    if (isNonNullType(node)) {
-      handleInputType(node.ofType)
-      return
-    }
-    if (isListType(node)) {
-      handleInputType(node.ofType)
-      return
-    }
-    if (isInputObjectType(node)) {
-      if (!inputNames[node.name]) {
-        inputNames[node.name] = true
-        newNames2.push(node.name)
-      }
-      return
-    }
-  }
-}
-
-function formatGraphQLInputObjectType(node: GraphQLInputObjectType) {
-  const fieldMap = node.getFields()
-  const fields = Object.values(fieldMap)
-  return join(
-    'interface ' + node.name + '{',
-    ...fields.map(field => formatInputField(field)),
-    '}\n'
-  )
-}
-
-function formatInputField(field: GraphQLInputField) {
-  const isRequired = isNonNullType(field.type)
-  const questionMark = isRequired ? '' : '?'
-  return field.name + questionMark + ': ' + formatInputType(field.type)
-}
-
-function formatInputType(node: GraphQLInputType) {
-  if (isNonNullType(node)) {
-    return node.ofType
-  }
-  if (isListType(node)) {
-    return 'ReadonlyArray<' + node.ofType + '>'
-  }
-  if (isEnumType(node)) {
-    // ! TODO
-    throw 'Unhandled GraphQLEnumType in formatInputType'
-  }
-  if (isScalarType(node)) {
-    return formatGraphQLScalarType(node)
-  }
-  if (isInputObjectType(node)) {
-    return node.name
-  }
-  throw 'Unhandled GraphQLInputType'
-}
-
-function formatDocumentFile(
-  file: DocumentFile,
-  schema: GraphQLSchema,
-  inputNames: InputNames
-) {
-  return join(
-    '',
-    '',
-    '/*',
-    ' * Operations from ' + file.filePath,
-    ' */',
-    '',
-    formatDocumentNode(file.content, schema, inputNames)
-  )
-}
-
-function formatDocumentNode(
-  node: DocumentNode,
-  schema: GraphQLSchema,
-  inputNames: InputNames
-) {
-  return node.definitions
-    .map(definitionNode => formatDefinition(definitionNode, schema, inputNames))
-    .join('\n')
-}
-
-function formatDefinition(
-  node: DefinitionNode,
-  schema: GraphQLSchema,
-  inputNames: InputNames
-) {
-  switch (node.kind) {
-    case 'OperationDefinition':
-      return formatOperationDefinition(node, schema, inputNames)
-    default:
-      throw 'unhandled DefinitionNode.kind = ' + node.kind
-  }
-}
-
-function formatOperationDefinition(
-  node: OperationDefinitionNode,
-  schema: GraphQLSchema,
-  inputNames: InputNames
-) {
-  return (
-    'export const ' +
-    node.name.value +
-    ' = ' +
-    definerFunction(node.operation) +
-    '<' +
-    formatVariableDefinitions(node.variableDefinitions, inputNames) +
-    ',' +
-    formatSelectionSet(
-      node.selectionSet,
-      selectSchemaObject(schema, node.operation)
-    ) +
-    '>(gql`\n' +
-    indent(formatLoc(node.loc), '  ') +
-    '\n`)\n'
-  )
-
-  function definerFunction(operation: OperationTypeNode) {
-    switch (operation) {
-      case 'query':
-        return 'defineQuery'
-      case 'mutation':
-        return 'defineMutation'
-      case 'subscription':
-        throw 'TODO'
-    }
-  }
-}
-
-function formatLoc(loc: Location) {
-  return loc.source.body.substring(loc.start, loc.end)
-}
-
-function formatVariableDefinitions(
-  nodes: ReadonlyArray<VariableDefinitionNode>,
-  inputNames: InputNames
-) {
-  const list = nodes.map(variableNode =>
-    formatVariableDefinition(variableNode, inputNames)
-  )
-  return join('{', '  /* variables */', ...list, '}')
-}
-
-function formatVariableDefinition(
-  node: VariableDefinitionNode,
-  inputNames: InputNames
-) {
-  // todo defaultValue
-
-  const isRequired = node.type.kind == 'NonNullType'
-  const questionMark = isRequired ? '' : '?'
-
-  return (
-    node.variable.name.value +
-    questionMark +
-    ': ' +
-    formatTypeNode(node.type, inputNames)
-  )
-}
-
-function formatTypeNode(node: TypeNode, inputNames: InputNames): string {
-  if (node.kind == 'NonNullType') {
-    return formatTypeNodeNotNull(node.type, inputNames)
-  }
-  return 'null | ' + formatTypeNodeNotNull(node, inputNames)
-}
-
-function formatTypeNodeNotNull(
-  node: NamedTypeNode | ListTypeNode,
-  inputNames: InputNames
-) {
-  switch (node.kind) {
-    case 'ListType':
-      return 'Array<' + formatTypeNode(node.type, inputNames) + '>'
-    case 'NamedType':
-      return formatNameTypeNode(node, inputNames)
-  }
-}
-
-function formatNameTypeNode(node: NamedTypeNode, inputNames: InputNames) {
-  switch (node.name.value) {
-    case 'String':
-      return 'string'
-    case 'Int':
-      return 'number'
-    case 'Float':
-      return 'number'
-    case 'Boolean':
-      return 'boolean'
-    case 'ID':
-      return 'string'
-    default:
-      inputNames[node.name.value] = true
-      return node.name.value
-  }
-}
-
-function formatSelectionSet(
-  node: SelectionSetNode,
-  schemaObject: GraphQLObjectType
-) {
-  const list = node.selections.map(selectionNode =>
-    formatSelectionNode(selectionNode, schemaObject, '  ')
-  )
-  return join('{', '  /* data */', ...list, '}')
-}
-
-function formatSelectionNode(
-  node: SelectionNode,
-  schemaObject: GraphQLObjectType,
-  offset: string
-) {
-  switch (node.kind) {
-    case 'Field':
-      return formatFieldNode(node, schemaObject, offset)
-    default:
-      throw 'unhandled SelectionNode.kind = ' + node.kind
-  }
-}
-
-function formatFieldNode(
-  node: FieldNode,
-  schemaObject: GraphQLObjectType,
-  offset: string
-) {
-  const schemaName = node.name.value
-  const aliasName = node.alias ? node.alias.value : schemaName
-
-  const schemaField = schemaObject.getFields()[schemaName]
-  const isRequired = isNonNullType(schemaField.type)
-  const questionMark = isRequired ? '' : '?'
-
-  return (
-    offset +
-    aliasName +
-    questionMark +
-    ': ' +
-    formatGraphQLOutputType(schemaField.type, node.selectionSet, offset + '  ')
-  )
-}
-
-function formatGraphQLOutputType(
-  type: GraphQLOutputType,
-  selectionSet: SelectionSetNode,
-  offset: string
-): string {
-  if (isNonNullType(type)) {
-    return formatGraphQLOutputTypeNotNull(type.ofType, selectionSet, offset)
-  }
-  return 'null | ' + formatGraphQLOutputTypeNotNull(type, selectionSet, offset)
-}
-
-function formatGraphQLOutputTypeNotNull(
-  type: GraphQLOutputType,
-  selectionSet: SelectionSetNode,
-  offset: string
-) {
-  if (isScalarType(type)) {
-    return formatGraphQLScalarType(type)
-  }
-  if (isObjectType(type)) {
-    return formatGraphQLObjectType(type, selectionSet, offset)
-  }
-  if (isListType(type)) {
-    return (
-      'Array<' +
-      formatGraphQLOutputType(type.ofType, selectionSet, offset) +
-      '>'
+    return join(
+      '/*',
+      ' * GraphQL InputTypes',
+      ' */',
+      '',
+      ...Object.keys(inputTypeNames).map(name => {
+        const node = schema.getType(name) as GraphQLInputObjectType
+        return formatGraphQLInputObjectType(node)
+      })
     )
   }
-  if (isEnumType(type)) {
-    const enumValues = type.getValues()
-    return enumValues.map(value => "'" + value.name + "'").join(' | ')
+
+  function findRecursiveInputReferences(newNames: string[]) {
+    if (newNames.length == 0) return
+
+    const newNames2: string[] = []
+
+    for (const name of newNames) {
+      const node = schema.getType(name) as GraphQLInputObjectType
+      const fieldMap = node.getFields()
+      const fields = Object.values(fieldMap)
+      for (const field of fields) {
+        handleInputType(field.type)
+      }
+    }
+
+    findRecursiveInputReferences(newNames2)
+
+    function handleInputType(node: GraphQLInputType) {
+      if (isNonNullType(node)) {
+        handleInputType(node.ofType)
+        return
+      }
+      if (isListType(node)) {
+        handleInputType(node.ofType)
+        return
+      }
+      if (isInputObjectType(node)) {
+        if (!inputTypeNames[node.name]) {
+          inputTypeNames[node.name] = true
+          newNames2.push(node.name)
+        }
+        return
+      }
+    }
   }
-  throw 'unhandled GraphQLOutputType "' + type + '"'
-}
 
-function formatGraphQLScalarType(type: GraphQLScalarType) {
-  switch (type.name) {
-    case 'String':
-      return 'string'
-    case 'Int':
-      return 'number'
-    case 'Float':
-      return 'number'
-    case 'Boolean':
-      return 'boolean'
-    case 'ID':
-      return 'string'
-    default:
-      throw 'unhandled GraphQLScalarType ' + type
+  function formatGraphQLInputObjectType(node: GraphQLInputObjectType) {
+    const fieldMap = node.getFields()
+    const fields = Object.values(fieldMap)
+    return join(
+      'interface ' + node.name + '{',
+      ...fields.map(field => formatInputField(field)),
+      '}\n'
+    )
   }
-}
 
-function formatGraphQLObjectType(
-  type: GraphQLObjectType,
-  selectionSet: SelectionSetNode,
-  offset: string
-) {
-  const list = selectionSet.selections.map(selectionNode =>
-    formatSelectionNode(selectionNode, type, offset)
-  )
-  return join('{', ...list, '}')
-}
+  function formatInputField(field: GraphQLInputField) {
+    const isRequired = isNonNullType(field.type)
+    const questionMark = isRequired ? '' : '?'
+    return field.name + questionMark + ': ' + formatInputType(field.type)
+  }
 
-function selectSchemaObject(
-  schema: GraphQLSchema,
-  operation: OperationTypeNode
-) {
-  switch (operation) {
-    case 'query':
-      return schema.getQueryType()
-    case 'mutation':
-      return schema.getMutationType()
-    case 'subscription':
-      return schema.getSubscriptionType()
+  function formatInputType(node: GraphQLInputType): string {
+    if (isNonNullType(node)) {
+      return node.ofType
+    }
+    if (isListType(node)) {
+      return 'ReadonlyArray<' + formatInputType(node.ofType) + '>'
+    }
+    if (isEnumType(node)) {
+      // ! TODO
+      throw 'Unhandled GraphQLEnumType in formatInputType'
+    }
+    if (isScalarType(node)) {
+      return formatGraphQLScalarType(node)
+    }
+    if (isInputObjectType(node)) {
+      return node.name
+    }
+    throw 'Unhandled GraphQLInputType'
+  }
+
+  function formatDocumentFile(file: DocumentFile) {
+    return join(
+      '',
+      '',
+      '/*',
+      ' * Operations from ' + file.filePath,
+      ' */',
+      '',
+      formatDocumentNode(file.content)
+    )
+  }
+
+  function formatDocumentNode(node: DocumentNode) {
+    return node.definitions
+      .map(definitionNode => formatDefinition(definitionNode))
+      .join('\n')
+  }
+
+  function formatDefinition(node: DefinitionNode) {
+    switch (node.kind) {
+      case 'OperationDefinition':
+        return formatOperationDefinition(node)
+      default:
+        throw 'unhandled DefinitionNode.kind = ' + node.kind
+    }
+  }
+
+  function formatOperationDefinition(node: OperationDefinitionNode) {
+    return (
+      'export const ' +
+      node.name.value +
+      ' = ' +
+      definerFunction(node.operation) +
+      '<' +
+      formatVariableDefinitions(node.variableDefinitions) +
+      ',' +
+      formatSelectionSet(
+        node.selectionSet,
+        selectSchemaObject(node.operation)
+      ) +
+      '>(gql`\n' +
+      indent(formatLoc(node.loc), '  ') +
+      '\n`)\n'
+    )
+
+    function definerFunction(operation: OperationTypeNode) {
+      switch (operation) {
+        case 'query':
+          return 'defineQuery'
+        case 'mutation':
+          return 'defineMutation'
+        case 'subscription':
+          throw 'TODO'
+      }
+    }
+  }
+
+  function formatLoc(loc: Location) {
+    return loc.source.body.substring(loc.start, loc.end)
+  }
+
+  function formatVariableDefinitions(
+    nodes: ReadonlyArray<VariableDefinitionNode>
+  ) {
+    const list = nodes.map(variableNode =>
+      formatVariableDefinition(variableNode)
+    )
+    return join('{', '  /* variables */', ...list, '}')
+  }
+
+  function formatVariableDefinition(node: VariableDefinitionNode) {
+    // todo defaultValue
+
+    const isRequired = node.type.kind == 'NonNullType'
+    const questionMark = isRequired ? '' : '?'
+
+    return (
+      node.variable.name.value + questionMark + ': ' + formatTypeNode(node.type)
+    )
+  }
+
+  function formatTypeNode(node: TypeNode): string {
+    if (node.kind == 'NonNullType') {
+      return formatTypeNodeNotNull(node.type)
+    }
+    return 'null | ' + formatTypeNodeNotNull(node)
+  }
+
+  function formatTypeNodeNotNull(node: NamedTypeNode | ListTypeNode) {
+    switch (node.kind) {
+      case 'ListType':
+        return 'Array<' + formatTypeNode(node.type) + '>'
+      case 'NamedType':
+        return formatNameTypeNode(node)
+    }
+  }
+
+  function formatNameTypeNode(node: NamedTypeNode) {
+    switch (node.name.value) {
+      case 'String':
+        return 'string'
+      case 'Int':
+        return 'number'
+      case 'Float':
+        return 'number'
+      case 'Boolean':
+        return 'boolean'
+      case 'ID':
+        return config.idType || 'string'
+      default:
+        const nodeType = schema.getType(node.name.value).astNode.kind
+        if (nodeType == 'ScalarTypeDefinition') {
+          return formatCustomScalar(node.name.value)
+        } else {
+          inputTypeNames[node.name.value] = true
+          return node.name.value
+        }
+    }
+  }
+
+  function formatSelectionSet(
+    node: SelectionSetNode,
+    schemaObject: GraphQLObjectType
+  ) {
+    const list = node.selections.map(selectionNode =>
+      formatSelectionNode(selectionNode, schemaObject, '  ')
+    )
+    return join('{', '  /* data */', ...list, '}')
+  }
+
+  function formatSelectionNode(
+    node: SelectionNode,
+    schemaObject: GraphQLObjectType,
+    offset: string
+  ) {
+    switch (node.kind) {
+      case 'Field':
+        return formatFieldNode(node, schemaObject, offset)
+      default:
+        throw 'unhandled SelectionNode.kind = ' + node.kind
+    }
+  }
+
+  function formatFieldNode(
+    node: FieldNode,
+    schemaObject: GraphQLObjectType,
+    offset: string
+  ) {
+    const schemaName = node.name.value
+    const aliasName = node.alias ? node.alias.value : schemaName
+
+    const schemaField = schemaObject.getFields()[schemaName]
+    const isRequired = isNonNullType(schemaField.type)
+    const questionMark = isRequired ? '' : '?'
+
+    return (
+      offset +
+      aliasName +
+      questionMark +
+      ': ' +
+      formatGraphQLOutputType(
+        schemaField.type,
+        node.selectionSet,
+        offset + '  '
+      )
+    )
+  }
+
+  function formatGraphQLOutputType(
+    type: GraphQLOutputType,
+    selectionSet: SelectionSetNode,
+    offset: string
+  ): string {
+    if (isNonNullType(type)) {
+      return formatGraphQLOutputTypeNotNull(type.ofType, selectionSet, offset)
+    }
+    return (
+      'null | ' + formatGraphQLOutputTypeNotNull(type, selectionSet, offset)
+    )
+  }
+
+  function formatGraphQLOutputTypeNotNull(
+    type: GraphQLOutputType,
+    selectionSet: SelectionSetNode,
+    offset: string
+  ) {
+    if (isScalarType(type)) {
+      return formatGraphQLScalarType(type)
+    }
+    if (isObjectType(type)) {
+      return formatGraphQLObjectType(type, selectionSet, offset)
+    }
+    if (isListType(type)) {
+      return (
+        'Array<' +
+        formatGraphQLOutputType(type.ofType, selectionSet, offset) +
+        '>'
+      )
+    }
+    if (isEnumType(type)) {
+      const enumValues = type.getValues()
+      return enumValues.map(value => "'" + value.name + "'").join(' | ')
+    }
+    throw 'unhandled GraphQLOutputType "' + type + '"'
+  }
+
+  function formatGraphQLScalarType(type: GraphQLScalarType) {
+    switch (type.name) {
+      case 'String':
+        return 'string'
+      case 'Int':
+        return 'number'
+      case 'Float':
+        return 'number'
+      case 'Boolean':
+        return 'boolean'
+      case 'ID':
+        return config.idType || 'string'
+      default:
+        return formatCustomScalar(type.name)
+    }
+  }
+
+  function formatCustomScalar(name: string) {
+    const customName = config.scalarTypes && config.scalarTypes[name]
+    return customName || 'any'
+  }
+
+  function formatGraphQLObjectType(
+    type: GraphQLObjectType,
+    selectionSet: SelectionSetNode,
+    offset: string
+  ) {
+    const list = selectionSet.selections.map(selectionNode =>
+      formatSelectionNode(selectionNode, type, offset)
+    )
+    return join('{', ...list, '}')
+  }
+
+  function selectSchemaObject(operation: OperationTypeNode) {
+    switch (operation) {
+      case 'query':
+        return schema.getQueryType()
+      case 'mutation':
+        return schema.getMutationType()
+      case 'subscription':
+        return schema.getSubscriptionType()
+    }
   }
 }
 
@@ -535,4 +519,4 @@ function indent(multilineText: string, offset: string) {
     .join('\n')
 }
 
-type InputNames = { [name: string]: boolean }
+type InputTypeNames = { [name: string]: boolean }

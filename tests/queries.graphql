@@ -1,27 +1,81 @@
-query fetchVersion {
-  myRequiredString
-  myOptionalInt
+query testScalars {
+  scalarString
+  scalarInt
+  scalarFloat
+  scalarBoolean
+  scalarID
+  scalarCustom
 
-  myType {
-    foo
-    nested {
-      bar
+  renamedString: scalarString
+}
+
+query testNullability {
+  nullableBoolean
+  nonNullableBoolean
+}
+
+query testNesting {
+  nestedObject {
+    recursive {
+      recursive {
+        scalar
+      }
     }
+    nested {
+      scalar
+    }
+    scalar
+    list
   }
-
-  myIntList
 }
 
-query multiply($a: Int!, $b: Float!, $printResult: Boolean) {
-  multiply(a: $a, b: $b, printResult: $printResult)
+query testMethods(
+  $reqParam: String!
+  $optParam: Float!
+  $input: InputType
+  $list2: [CustomScalar!]!
+) {
+  method(requiredParam: $reqParam, optionalParam: $optParam, input: $input)
+  renamedMethod: method2(list2: $list2)
 }
 
-query withList($list: [Int]!) {
-  accumulate(list: $list)
+mutation testScalarsMutation {
+  scalarString
+  scalarInt
+  scalarFloat
+  scalarBoolean
+  scalarID
+  scalarCustom
+
+  renamedString: scalarString
 }
 
-mutation mutateItBaby($input: MyInputType) {
-  doSomething(input: $input) {
-    foo
+mutation testNullabilityMutation {
+  nullableBoolean
+  nonNullableBoolean
+}
+
+mutation testNestingMutation {
+  nestedObject {
+    recursive {
+      recursive {
+        scalar
+      }
+    }
+    nested {
+      scalar
+    }
+    scalar
+    list
   }
+}
+
+mutation testMethodsMutation(
+  $reqParam: String!
+  $optParam: Float!
+  $input: InputType
+  $list2: [CustomScalar!]!
+) {
+  method(requiredParam: $reqParam, optionalParam: $optParam, input: $input)
+  renamedMethod: method2(list2: $list2)
 }

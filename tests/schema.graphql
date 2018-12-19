@@ -1,34 +1,79 @@
+scalar CustomScalar
+
 type Query {
-  myRequiredString: String!
-  myOptionalInt: Int
+  # Test Scalars
+  scalarString: String
+  scalarInt: Int
+  scalarFloat: Float
+  scalarBoolean: Boolean
+  scalarID: ID
+  scalarCustom: CustomScalar
 
-  myType: MyType
-  myIntList: [Int]
+  # Test nullability
+  nullableBoolean: Boolean
+  nonNullableBoolean: Boolean!
 
-  multiply(a: Int!, b: Float!, printResult: Boolean): Float
-  accumulate(list: [Int]): ID!
+  # Test nesting
+  nestedObject: ObjectType
+
+  # Test lists
+  listOfNestedObject: [ObjectType]
+
+  # Test methods
+  method(
+    requiredParam: String!
+    optionalParam: Float
+    input: InputType
+  ): CustomScalar
+  method2(list1: [CustomScalar!], list2: [CustomScalar]!): [CustomScalar]
 }
 
 type Mutation {
-  doSomething(input: MyInputType): MyType
+  # Test Scalars
+  scalarString: String
+  scalarInt: Int
+  scalarFloat: Float
+  scalarBoolean: Boolean
+  scalarID: ID
+  scalarCustom: CustomScalar
+
+  # Test nullability
+  nullableBoolean: Boolean
+  nonNullableBoolean: Boolean!
+
+  # Test nesting
+  nestedObject: ObjectType
+
+  # Test lists
+  listOfNestedObject: [ObjectType]
+
+  # Test methods
+  method(
+    requiredParam: String!
+    optionalParam: Float
+    input: InputType
+  ): CustomScalar
+  method2(list1: [CustomScalar!], list2: [CustomScalar]!): [CustomScalar]
 }
 
-type MyType {
-  foo: String
-  nested: MyNestedType!
+type ObjectType {
+  recursive: ObjectType
+  nested: NestedObjectType
+  scalar: Boolean
+  list: [String!]
 }
 
-type MyNestedType {
-  bar: Float
+type NestedObjectType {
+  scalar: Int
 }
 
-input MyInputType {
-  anIntMaybe: Int
-  aString: String!
-  aNestedObjectMaybe: MyNestedInputType
-  aNestedObject: MyNestedInputType!
+input InputType {
+  recursive: InputType
+  nested: NestedInputType
+  scalar: Boolean
+  list: [String!]
 }
 
-input MyNestedInputType {
-  itsRecursive: MyNestedInputType
+input NestedInputType {
+  scalar: Int
 }
