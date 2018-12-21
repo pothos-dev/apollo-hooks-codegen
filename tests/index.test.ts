@@ -24,10 +24,10 @@ test('basic test', async () => {
 })
 
 function pluginLoader(pluginName: string) {
-  // graphql-codegen-codegen prefixes "graphql-codegen-" to the plugin
-  if (pluginName == 'graphql-codegen-apollo-hooks-codegen')
-    return {
-      plugin,
-    }
-  throw 'Plugin not found'
+  if (pluginName != 'apollo-hooks-codegen') {
+    // Must be this exact string, otherwise graphql-code-generator will throw
+    throw Error(`Cannot find module '${pluginName}'`)
+  }
+
+  return { plugin }
 }
