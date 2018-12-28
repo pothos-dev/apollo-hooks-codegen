@@ -51,13 +51,13 @@ generates:
     - apollo-hooks-codegen
 ```
 
-```json5
+```json
 // package.json
 {
-  scripts: {
+  "scripts": {
     "codegen": "gql-gen",
-    "codegen:watch": "nodemon -e gql -x npm run codegen",
-  },
+    "codegen:watch": "nodemon -e gql -x npm run codegen"
+  }
 }
 ```
 
