@@ -6,6 +6,7 @@
     "jsx": "react",
     "lib": ["esnext", "dom"],
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "declaration": true,
     "noImplicitAny": true
   },
