@@ -1,6 +1,6 @@
-schema: ./tests/schema.graphql
-documents: ./tests/queries.graphql
+schema: ./tests/resources/schema.graphql
+documents: ./tests/resources/documents.graphql
 overwrite: true
 generates:
-  tests/output.ts:
+  tests/resources/output.ts:
     - dist/index.js

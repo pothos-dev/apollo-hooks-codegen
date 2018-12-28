@@ -2,13 +2,15 @@ import { executeCodegen } from 'graphql-code-generator'
 import { plugin } from '../src/index'
 import * as fs from 'fs-extra'
 
+async function readResource(filename: string) {
+  return await fs.readFile(`${__dirname}/resources/${filename}`, {
+    encoding: 'utf8',
+  })
+}
+
 test('basic test', async () => {
-  const schema = await fs.readFile(__dirname + '/schema.graphql', {
-    encoding: 'utf8',
-  })
-  const documents = await fs.readFile(__dirname + '/queries.graphql', {
-    encoding: 'utf8',
-  })
+  const schema = await readResource('schema.graphql')
+  const documents = await readResource('documents.graphql')
 
   const output = await executeCodegen({
     schema,
