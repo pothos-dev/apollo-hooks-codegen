@@ -56,7 +56,7 @@ generates:
 {
   "scripts": {
     "codegen": "gql-gen",
-    "codegen:watch": "nodemon -e gql -x npm run codegen"
+    "codegen:watch": "gql-gen -w"
   }
 }
 ```
