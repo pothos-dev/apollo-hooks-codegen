@@ -9,6 +9,8 @@ import ApolloClient, {
   MutationOptions,
   ObservableQuery,
   WatchQueryOptions,
+  ApolloQueryResult,
+  ApolloCurrentResult,
 } from 'apollo-client'
 import { FetchResult } from 'apollo-link'
 import { DocumentNode } from 'graphql'
@@ -86,23 +88,19 @@ function defineQuery<V, D>(doc: DocumentNode) {
 // the query result changes.
 export function useApolloQuery<D, V>(
   configuredQuery: (client: ApolloClient<any>) => ObservableQuery<D, V>
-): [D | undefined, Error | undefined] {
+): [ApolloCurrentResult<D>, ObservableQuery<D, V>] {
   const { apolloClient } = useContext(apolloContext)
   if (!apolloClient) throw 'No ApolloClient provided'
 
-  const watchQuery = configuredQuery(apolloClient)
+  const query = configuredQuery(apolloClient)
 
-  const [data, setData] = useState<D | undefined>(undefined)
-  const [error, setError] = useState<Error | undefined>(undefined)
+  const [result, setResult] = useState(query.currentResult())
   useEffect(() => {
-    const subscription = watchQuery.subscribe(
-      result => setData(result.data),
-      error => setError(error)
-    )
+    const subscription = query.subscribe(setResult)
     return () => subscription.unsubscribe()
   }, [])
 
-  return [data, error]
+  return [result, query]
 }
 
 // Converts a gql-snippet into a user-callable function that takes options,

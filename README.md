@@ -90,16 +90,17 @@ function App() {
 Now we're ready to use the hooks that we've already generated.
 
 ```tsx
+// ! TODO fix example
 import { useApolloQuery, fetchProducts } from './graphql.generated.ts'
 
 function ProductListScreen() {
   // This hook will automatically re-render this component when new data is available,
   // which may happen after the initial load, when we use a refetchQuery or
   // when we update the Apollo cache through some other means.
-  const [data, error] = useApolloQuery(fetchProducts())
+  const [result, query] = useApolloQuery(fetchProducts())
 
-  if (error) throw 'Deal with it.'
-  if (!data) return <LoadingIndicator />
+  if (result.loading) return <LoadingIndicator />
+  if (result.error) throw 'Deal with it.'
 
   // Look ma, typesafe queries!
   return (
