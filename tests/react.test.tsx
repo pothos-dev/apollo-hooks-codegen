@@ -23,24 +23,30 @@ const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
 })
 
-function TestComponent() {
+function TestApp(props: { resolveLoading(): void }) {
+  return (
+    <ApolloHooksProvider apolloClient={apolloClient}>
+      <TestComponent resolveLoading={props.resolveLoading} />
+    </ApolloHooksProvider>
+  )
+}
+
+function TestComponent(props: { resolveLoading(): void }) {
   const [data, error] = useApolloQuery(fetchProducts())
 
   if (error) throw error
   if (!data) return <div>Loading</div>
 
+  props.resolveLoading()
+
   return <div>{data.allProducts.length}</div>
 }
 
-function TestApp() {
-  return (
-    <ApolloHooksProvider apolloClient={apolloClient}>
-      <TestComponent />
-    </ApolloHooksProvider>
-  )
-}
-
-test('react test', () => {
-  const wrapper = enzyme.mount(<TestApp />)
-  expect(wrapper.html()).toBe('<div>Hello world</div>')
+test('react test', async () => {
+  let resolveLoading
+  const promise = new Promise(resolve => (resolveLoading = resolve))
+  const wrapper = enzyme.mount(<TestApp resolveLoading={resolveLoading} />)
+  expect(wrapper.html()).toBe('<div>Loading</div>')
+  await promise
+  expect(wrapper.html()).toBe('<div>Loading</div>')
 })
