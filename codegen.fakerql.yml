@@ -1,0 +1,6 @@
+schema: https://fakerql.com/graphql
+documents: ./tests/resources/fakerql-documents.graphql
+overwrite: true
+generates:
+  tests/resources/fakerql-output.ts:
+    - dist/index.js

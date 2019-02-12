@@ -1,0 +1,7 @@
+query fetchProducts {
+  allProducts(count: 25) {
+    id
+    name
+    price
+  }
+}
