@@ -1,5 +1,1 @@
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  setupFiles: ['raf/polyfill'],
-}
+module.exports = { preset: 'ts-jest' }

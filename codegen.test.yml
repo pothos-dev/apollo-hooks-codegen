@@ -1,0 +1,6 @@
+schema: http://localhost:8088/graphql
+documents: ./tests/resources/graphql-demo-documents.graphql
+overwrite: true
+generates:
+  ./tests/generated/graphql-demo-output.ts:
+    - dist/index.js

@@ -15,27 +15,27 @@ import { DocumentNode } from 'graphql'
 import gql from 'graphql-tag'
 
 /*
- * Operations from ./tests/resources/fakerql-documents.graphql
+ * Operations from ./tests/resources/graphql-demo-documents.graphql
  */
 
-export const fetchProducts = defineQuery<
+export const fetchPersons = defineQuery<
   {
     /* variables */
   },
   {
     /* data */
-    allProducts?: null | Array<null | {
+    persons?: null | Array<{
       id: string
       name: string
-      price: string
+      blog?: null | string
     }>
   }
 >(gql`
-  query fetchProducts {
-    allProducts(count: 25) {
+  query fetchPersons {
+    persons {
       id
       name
-      price
+      blog
     }
   }
 `)
