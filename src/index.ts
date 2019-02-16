@@ -407,6 +407,7 @@ import ApolloClient, {
   MutationOptions,
   ObservableQuery,
   WatchQueryOptions,
+  ApolloCurrentResult,
 } from 'apollo-client'
 import { FetchResult } from 'apollo-link'
 import { DocumentNode } from 'graphql'
