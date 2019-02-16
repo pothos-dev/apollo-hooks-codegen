@@ -433,8 +433,8 @@ export function ApolloHooksProvider({
   children,
   apolloClient,
 }: {
-  children: React.ReactNode
-  apolloClient?: ApolloClient<any> | undefined
+  children?: React.ReactNode
+  apolloClient: ApolloClient<any> | undefined
 }) {
   const elementType = apolloContext.Provider
   const elementProps: React.ProviderProps<ContextType> = {
