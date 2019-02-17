@@ -29,6 +29,7 @@ import {
   GraphQLSchema,
   DocumentNode,
   NameNode,
+  GraphQLEnumType,
 } from 'graphql'
 import {
   TypeIR,
@@ -225,8 +226,7 @@ export function transform(
             }
 
             if (isEnumType(node)) {
-              // TODO
-              throw 'Unhandled GraphQLEnumType in formatInputType'
+              return transformEnumType(node)
             }
 
             if (isScalarType(node)) {
@@ -307,10 +307,7 @@ export function transform(
     } else if (isScalarType(baseType)) {
       scalar = transformScalarType(baseType)
     } else if (isEnumType(baseType)) {
-      scalar = baseType
-        .getValues()
-        .map(value => "'" + value.name + "'")
-        .join(' | ')
+      scalar = transformEnumType(baseType)
     }
 
     if (!fields && !scalar)
@@ -378,6 +375,13 @@ export function transform(
       default:
         return getCustomScalarName(type.name)
     }
+  }
+
+  function transformEnumType(type: GraphQLEnumType) {
+    return type
+      .getValues()
+      .map(value => "'" + value.name + "'")
+      .join(' | ')
   }
 
   function getCustomScalarName(schemaName: string) {
