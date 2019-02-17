@@ -33,4 +33,4 @@ export interface TypeIR {
 }
 
 export type OperationType = 'query' | 'mutation' | 'subscription'
-export type Modifier = 'Nullable' | 'Array'
+export type Modifier = 'Nullable' | 'ReadonlyArray'

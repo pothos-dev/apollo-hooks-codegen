@@ -131,7 +131,7 @@ export function transform(
         }
 
         if (typeNode.kind == 'ListType') {
-          addModifier('Array')
+          addModifier('ReadonlyArray')
           return unwrap(typeNode.type, true)
         }
 
@@ -220,7 +220,7 @@ export function transform(
             }
 
             if (isListType(node)) {
-              addModifier('Array')
+              addModifier('ReadonlyArray')
               return unwrap(node.ofType, true)
             }
 
@@ -348,7 +348,7 @@ export function transform(
         }
 
         if (isListType(type)) {
-          addModifier('Array')
+          addModifier('ReadonlyArray')
           return unwrap(type.ofType, true)
         }
 

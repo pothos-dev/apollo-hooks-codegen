@@ -103,7 +103,7 @@ export module testNesting {
       recursive: Nullable<nestedObject.recursive>
       nested: Nullable<nestedObject.nested>
       scalar: Nullable<nestedObject.scalar>
-      list: Nullable<Array<nestedObject.list>>
+      list: Nullable<ReadonlyArray<nestedObject.list>>
     }
     export module nestedObject {
       export type recursive = {
@@ -145,7 +145,7 @@ export module testMethods {
     reqParam: variables.reqParam
     optParam: variables.optParam
     input: Nullable<variables.input>
-    list2: Array<variables.list2>
+    list2: ReadonlyArray<variables.list2>
   }
   export module variables {
     export type reqParam = string
@@ -155,7 +155,7 @@ export module testMethods {
   }
   export type data = {
     method: Nullable<data.method>
-    renamedMethod: Nullable<Array<Nullable<data.renamedMethod>>>
+    renamedMethod: Nullable<ReadonlyArray<Nullable<data.renamedMethod>>>
   }
   export module data {
     export type method = any
@@ -253,7 +253,7 @@ export module testNestingMutation {
       recursive: Nullable<nestedObject.recursive>
       nested: Nullable<nestedObject.nested>
       scalar: Nullable<nestedObject.scalar>
-      list: Nullable<Array<nestedObject.list>>
+      list: Nullable<ReadonlyArray<nestedObject.list>>
     }
     export module nestedObject {
       export type recursive = {
@@ -298,7 +298,7 @@ export module testMethodsMutation {
     reqParam: variables.reqParam
     optParam: variables.optParam
     input: Nullable<variables.input>
-    list2: Array<variables.list2>
+    list2: ReadonlyArray<variables.list2>
   }
   export module variables {
     export type reqParam = string
@@ -308,7 +308,7 @@ export module testMethodsMutation {
   }
   export type data = {
     method: Nullable<data.method>
-    renamedMethod: Nullable<Array<Nullable<data.renamedMethod>>>
+    renamedMethod: Nullable<ReadonlyArray<Nullable<data.renamedMethod>>>
   }
   export module data {
     export type method = any
@@ -324,7 +324,7 @@ export type InputType = {
   recursive: Nullable<InputType.recursive>
   nested: Nullable<InputType.nested>
   scalar: Nullable<InputType.scalar>
-  list: Nullable<Array<InputType.list>>
+  list: Nullable<ReadonlyArray<InputType.list>>
 }
 export module InputType {
   export type recursive = InputType
