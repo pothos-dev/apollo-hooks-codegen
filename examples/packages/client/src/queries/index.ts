@@ -14,41 +14,72 @@ import ApolloClient, {
 import { FetchResult } from 'apollo-link'
 import { DocumentNode } from 'graphql'
 import gql from 'graphql-tag'
+import { getAllTodos as _getAllTodos } from './types'
 
 /*
  * Operations from src/queries/demo.graphql
  */
 
-export const fetchPersons = defineQuery<
-  {
-    /* variables */
-  },
-  {
-    /* data */
-    persons?: null | Array<{
-      id: string
-      name: string
-      blog?: null | string
-    }>
-  }
+export const getAllTodos = query<
+  _getAllTodos.variables,
+  _getAllTodos.variables
 >(gql`
-  query fetchPersons {
-    persons {
+  query getAllTodos {
+    todoItems {
       id
-      name
-      blog
+      title
+      isDone
     }
   }
 `)
 
-export module fetchPersons {
-  export interface variables {}
-}
+// export const createTodo = mutation<createTodo.variables, createTodo.data>(gql`
+//   mutation createTodo($todoItem: TodoItemInput!) {
+//     createTodoItem(todoItem: $todoItem) {
+//       id
+//     }
+//   }
+// `)
+// export module createTodo {
+//   export type variables = {
+//     todoItem: variables.todoItem
+//   }
+//   export module variables {
+//     export type todoItem = TodoItemInput
+//   }
+//   export type data = {
+//     createTodoItem: data.createTodoItem
+//   }
+//   export module data {
+//     export type createTodoItem = {
+//       id: createTodoItem.id
+//     }
+//     export module createTodoItem {
+//       export type id = string
+//     }
+//   }
+// }
+
+/*
+ * GraphQL Input Types
+ */
+
+// export type TodoItemInput = {
+//   title: TodoItemInput.title
+//   description: Nullable<TodoItemInput.description>
+//   dueDate: Nullable<TodoItemInput.dueDate>
+// }
+// export module TodoItemInput {
+//   export type title = string
+//   export type description = string
+//   export type dueDate = any
+// }
 
 /*
  * Boilerplate
  */
 
+type Nullable<T> = T | null
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 type Error = any
 type QueryOpts<V> = Omit<WatchQueryOptions<V>, 'query'>
@@ -76,7 +107,7 @@ export function ApolloHooksProvider({
 
 // Converts a gql-snippet into a user-callable function that takes options,
 // which can then be passed to useApolloQuery to execute the query.
-function defineQuery<V, D>(doc: DocumentNode) {
+function query<V, D>(doc: DocumentNode) {
   return function configureQuery(opts: QueryOpts<V> = {}) {
     return function executeQuery(client: ApolloClient<any>) {
       return client.watchQuery<D>({ query: doc, ...opts })
@@ -108,7 +139,7 @@ export function useApolloQuery<D, V>(
 
 // Converts a gql-snippet into a user-callable function that takes options,
 // which can then be passed to useApolloMutation to provide the mutate function.
-function defineMutation<V, D>(mutation: DocumentNode) {
+function mutation<V, D>(mutation: DocumentNode) {
   return function configureMutation(opts: MutateOpts<D, V> = {}) {
     return function loadMutation(client: ApolloClient<any>) {
       return function executeMutation(opts2: MutateOpts<D, V> = {}) {

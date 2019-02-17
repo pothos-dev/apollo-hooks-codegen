@@ -1,4 +1,4 @@
-schema: http://localhost:8088/graphql
+schema: http://localhost:4000
 documents: src/queries/demo.graphql
 overwrite: true
 generates:

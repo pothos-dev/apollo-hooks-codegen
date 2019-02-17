@@ -1,7 +1,0 @@
-query fetchPersons {
-  persons {
-    id
-    name
-    blog
-  }
-}

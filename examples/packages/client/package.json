@@ -2,6 +2,12 @@
   "name": "examples",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
   "dependencies": {
     "apollo-cache-inmemory": "^1.4.2",
     "apollo-client": "^2.4.12",
@@ -10,11 +16,8 @@
     "react-dom": "^16.8.1",
     "react-scripts": "2.1.5"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+  "devDependencies": {
+    "graphql-code-generator": "^0.16.1"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -24,11 +27,5 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ],
-  "devDependencies": {
-    "graphql-code-generator": "^0.16.1"
-  },
-  "resolutions": {
-    "type-graphql/graphql": "^14.1.1"
-  }
+  ]
 }

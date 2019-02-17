@@ -1,0 +1,13 @@
+query getAllTodos {
+  todoItems {
+    id
+    title
+    isDone
+  }
+}
+
+mutation createTodo($todoItem: TodoItemInput!) {
+  createTodoItem(todoItem: $todoItem) {
+    id
+  }
+}
