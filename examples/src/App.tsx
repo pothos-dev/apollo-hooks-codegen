@@ -1,9 +1,5 @@
 import React from 'react'
-import {
-  ApolloHooksProvider,
-  useApolloQuery,
-  fetchPersons,
-} from './.generated/demo.graphql'
+import { ApolloHooksProvider, useApolloQuery, fetchPersons } from './queries'
 import { apolloClient } from './apollo-client'
 
 export default function App() {
