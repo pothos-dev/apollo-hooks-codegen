@@ -40,39 +40,35 @@ function formatOperation(operation: OperationIR): string {
   const { name, operationType, gqlExpression, data, variables } = operation
 
   return join(
-    `export const ${name} = ${operationType}<${name}.variables, ${name}.data>(${gqlExpression})`,
-    `export module ${name} {`,
-    indent(formatType(variables)),
-    indent(formatType(data)),
-    `}`,
+    `export const ${name} = ${operationType}<${name}_variables, ${name}_data>(${gqlExpression})`,
+    formatType(variables),
+    formatType(data),
     ``
   )
 }
 
+function typeName(type: TypeIR): string {
+  return [...type.namespace, type.name].join('_')
+}
+
 function formatType(type: TypeIR): string {
-  const leftSide = 'export type ' + type.name
+  const leftSide = 'export type ' + typeName(type)
   const rightSide = type.scalar || formatInterface(type.fields)
 
   let output = leftSide + ' = ' + rightSide
 
   if (type.fields) {
-    output += join(
-      '',
-      'export module ' + type.name + ' {',
-      ...type.fields.map(type => indent(formatType(type))),
-      '}'
-    )
+    output += join('', ...type.fields.map(formatType))
   }
 
   return output
 
   function formatInterface(fields: TypeIR[]) {
-    return join('{', ...fields.map(formatField), '}')
+    return join('{', ...fields.map(field => indent(formatField(field))), '}')
   }
 
   function formatField(field: TypeIR) {
-    let containingNamespace = field.namespace[field.namespace.length - 1]
-    let type = containingNamespace + '.' + field.name
+    let type = typeName(field)
     if (field.modifiers) {
       for (const modifier of field.modifiers.reverse()) {
         type = modifier + '<' + type + '>'

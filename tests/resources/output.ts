@@ -19,7 +19,7 @@ import gql from 'graphql-tag'
  * Operations from ./tests/resources/documents.graphql
  */
 
-export const testScalars = query<testScalars.variables, testScalars.data>(gql`
+export const testScalars = query<testScalars_variables, testScalars_data>(gql`
   query testScalars {
     scalarString
     scalarInt
@@ -31,52 +31,42 @@ export const testScalars = query<testScalars.variables, testScalars.data>(gql`
     renamedString: scalarString
   }
 `)
-export module testScalars {
-  export type variables = {}
-  export module variables {}
-  export type data = {
-    scalarString: Nullable<data.scalarString>
-    scalarInt: Nullable<data.scalarInt>
-    scalarFloat: Nullable<data.scalarFloat>
-    scalarBoolean: Nullable<data.scalarBoolean>
-    scalarID: Nullable<data.scalarID>
-    scalarCustom: Nullable<data.scalarCustom>
-    renamedString: Nullable<data.renamedString>
-  }
-  export module data {
-    export type scalarString = string
-    export type scalarInt = number
-    export type scalarFloat = number
-    export type scalarBoolean = boolean
-    export type scalarID = string
-    export type scalarCustom = any
-    export type renamedString = string
-  }
+export type testScalars_variables = {}
+export type testScalars_data = {
+  scalarString: Nullable<testScalars_data_scalarString>
+  scalarInt: Nullable<testScalars_data_scalarInt>
+  scalarFloat: Nullable<testScalars_data_scalarFloat>
+  scalarBoolean: Nullable<testScalars_data_scalarBoolean>
+  scalarID: Nullable<testScalars_data_scalarID>
+  scalarCustom: Nullable<testScalars_data_scalarCustom>
+  renamedString: Nullable<testScalars_data_renamedString>
 }
+export type testScalars_data_scalarString = string
+export type testScalars_data_scalarInt = number
+export type testScalars_data_scalarFloat = number
+export type testScalars_data_scalarBoolean = boolean
+export type testScalars_data_scalarID = string
+export type testScalars_data_scalarCustom = any
+export type testScalars_data_renamedString = string
 
 export const testNullability = query<
-  testNullability.variables,
-  testNullability.data
+  testNullability_variables,
+  testNullability_data
 >(gql`
   query testNullability {
     nullableBoolean
     nonNullableBoolean
   }
 `)
-export module testNullability {
-  export type variables = {}
-  export module variables {}
-  export type data = {
-    nullableBoolean: Nullable<data.nullableBoolean>
-    nonNullableBoolean: data.nonNullableBoolean
-  }
-  export module data {
-    export type nullableBoolean = boolean
-    export type nonNullableBoolean = boolean
-  }
+export type testNullability_variables = {}
+export type testNullability_data = {
+  nullableBoolean: Nullable<testNullability_data_nullableBoolean>
+  nonNullableBoolean: testNullability_data_nonNullableBoolean
 }
+export type testNullability_data_nullableBoolean = boolean
+export type testNullability_data_nonNullableBoolean = boolean
 
-export const testNesting = query<testNesting.variables, testNesting.data>(gql`
+export const testNesting = query<testNesting_variables, testNesting_data>(gql`
   query testNesting {
     nestedObject {
       recursive {
@@ -92,44 +82,31 @@ export const testNesting = query<testNesting.variables, testNesting.data>(gql`
     }
   }
 `)
-export module testNesting {
-  export type variables = {}
-  export module variables {}
-  export type data = {
-    nestedObject: Nullable<data.nestedObject>
-  }
-  export module data {
-    export type nestedObject = {
-      recursive: Nullable<nestedObject.recursive>
-      nested: Nullable<nestedObject.nested>
-      scalar: Nullable<nestedObject.scalar>
-      list: Nullable<ReadonlyArray<nestedObject.list>>
-    }
-    export module nestedObject {
-      export type recursive = {
-        recursive: Nullable<recursive.recursive>
-      }
-      export module recursive {
-        export type recursive = {
-          scalar: Nullable<recursive.scalar>
-        }
-        export module recursive {
-          export type scalar = boolean
-        }
-      }
-      export type nested = {
-        scalar: Nullable<nested.scalar>
-      }
-      export module nested {
-        export type scalar = number
-      }
-      export type scalar = boolean
-      export type list = string
-    }
-  }
+export type testNesting_variables = {}
+export type testNesting_data = {
+  nestedObject: Nullable<testNesting_data_nestedObject>
 }
+export type testNesting_data_nestedObject = {
+  recursive: Nullable<testNesting_data_nestedObject_recursive>
+  nested: Nullable<testNesting_data_nestedObject_nested>
+  scalar: Nullable<testNesting_data_nestedObject_scalar>
+  list: Nullable<ReadonlyArray<testNesting_data_nestedObject_list>>
+}
+export type testNesting_data_nestedObject_recursive = {
+  recursive: Nullable<testNesting_data_nestedObject_recursive_recursive>
+}
+export type testNesting_data_nestedObject_recursive_recursive = {
+  scalar: Nullable<testNesting_data_nestedObject_recursive_recursive_scalar>
+}
+export type testNesting_data_nestedObject_recursive_recursive_scalar = boolean
+export type testNesting_data_nestedObject_nested = {
+  scalar: Nullable<testNesting_data_nestedObject_nested_scalar>
+}
+export type testNesting_data_nestedObject_nested_scalar = number
+export type testNesting_data_nestedObject_scalar = boolean
+export type testNesting_data_nestedObject_list = string
 
-export const testMethods = query<testMethods.variables, testMethods.data>(gql`
+export const testMethods = query<testMethods_variables, testMethods_data>(gql`
   query testMethods(
     $reqParam: String!
     $optParam: Float!
@@ -140,32 +117,28 @@ export const testMethods = query<testMethods.variables, testMethods.data>(gql`
     renamedMethod: method2(list2: $list2)
   }
 `)
-export module testMethods {
-  export type variables = {
-    reqParam: variables.reqParam
-    optParam: variables.optParam
-    input: Nullable<variables.input>
-    list2: ReadonlyArray<variables.list2>
-  }
-  export module variables {
-    export type reqParam = string
-    export type optParam = number
-    export type input = InputType
-    export type list2 = any
-  }
-  export type data = {
-    method: Nullable<data.method>
-    renamedMethod: Nullable<ReadonlyArray<Nullable<data.renamedMethod>>>
-  }
-  export module data {
-    export type method = any
-    export type renamedMethod = any
-  }
+export type testMethods_variables = {
+  reqParam: testMethods_variables_reqParam
+  optParam: testMethods_variables_optParam
+  input: Nullable<testMethods_variables_input>
+  list2: ReadonlyArray<testMethods_variables_list2>
 }
+export type testMethods_variables_reqParam = string
+export type testMethods_variables_optParam = number
+export type testMethods_variables_input = InputType
+export type testMethods_variables_list2 = any
+export type testMethods_data = {
+  method: Nullable<testMethods_data_method>
+  renamedMethod: Nullable<
+    ReadonlyArray<Nullable<testMethods_data_renamedMethod>>
+  >
+}
+export type testMethods_data_method = any
+export type testMethods_data_renamedMethod = any
 
 export const testScalarsMutation = mutation<
-  testScalarsMutation.variables,
-  testScalarsMutation.data
+  testScalarsMutation_variables,
+  testScalarsMutation_data
 >(gql`
   mutation testScalarsMutation {
     scalarString
@@ -178,54 +151,44 @@ export const testScalarsMutation = mutation<
     renamedString: scalarString
   }
 `)
-export module testScalarsMutation {
-  export type variables = {}
-  export module variables {}
-  export type data = {
-    scalarString: Nullable<data.scalarString>
-    scalarInt: Nullable<data.scalarInt>
-    scalarFloat: Nullable<data.scalarFloat>
-    scalarBoolean: Nullable<data.scalarBoolean>
-    scalarID: Nullable<data.scalarID>
-    scalarCustom: Nullable<data.scalarCustom>
-    renamedString: Nullable<data.renamedString>
-  }
-  export module data {
-    export type scalarString = string
-    export type scalarInt = number
-    export type scalarFloat = number
-    export type scalarBoolean = boolean
-    export type scalarID = string
-    export type scalarCustom = any
-    export type renamedString = string
-  }
+export type testScalarsMutation_variables = {}
+export type testScalarsMutation_data = {
+  scalarString: Nullable<testScalarsMutation_data_scalarString>
+  scalarInt: Nullable<testScalarsMutation_data_scalarInt>
+  scalarFloat: Nullable<testScalarsMutation_data_scalarFloat>
+  scalarBoolean: Nullable<testScalarsMutation_data_scalarBoolean>
+  scalarID: Nullable<testScalarsMutation_data_scalarID>
+  scalarCustom: Nullable<testScalarsMutation_data_scalarCustom>
+  renamedString: Nullable<testScalarsMutation_data_renamedString>
 }
+export type testScalarsMutation_data_scalarString = string
+export type testScalarsMutation_data_scalarInt = number
+export type testScalarsMutation_data_scalarFloat = number
+export type testScalarsMutation_data_scalarBoolean = boolean
+export type testScalarsMutation_data_scalarID = string
+export type testScalarsMutation_data_scalarCustom = any
+export type testScalarsMutation_data_renamedString = string
 
 export const testNullabilityMutation = mutation<
-  testNullabilityMutation.variables,
-  testNullabilityMutation.data
+  testNullabilityMutation_variables,
+  testNullabilityMutation_data
 >(gql`
   mutation testNullabilityMutation {
     nullableBoolean
     nonNullableBoolean
   }
 `)
-export module testNullabilityMutation {
-  export type variables = {}
-  export module variables {}
-  export type data = {
-    nullableBoolean: Nullable<data.nullableBoolean>
-    nonNullableBoolean: data.nonNullableBoolean
-  }
-  export module data {
-    export type nullableBoolean = boolean
-    export type nonNullableBoolean = boolean
-  }
+export type testNullabilityMutation_variables = {}
+export type testNullabilityMutation_data = {
+  nullableBoolean: Nullable<testNullabilityMutation_data_nullableBoolean>
+  nonNullableBoolean: testNullabilityMutation_data_nonNullableBoolean
 }
+export type testNullabilityMutation_data_nullableBoolean = boolean
+export type testNullabilityMutation_data_nonNullableBoolean = boolean
 
 export const testNestingMutation = mutation<
-  testNestingMutation.variables,
-  testNestingMutation.data
+  testNestingMutation_variables,
+  testNestingMutation_data
 >(gql`
   mutation testNestingMutation {
     nestedObject {
@@ -242,46 +205,35 @@ export const testNestingMutation = mutation<
     }
   }
 `)
-export module testNestingMutation {
-  export type variables = {}
-  export module variables {}
-  export type data = {
-    nestedObject: Nullable<data.nestedObject>
-  }
-  export module data {
-    export type nestedObject = {
-      recursive: Nullable<nestedObject.recursive>
-      nested: Nullable<nestedObject.nested>
-      scalar: Nullable<nestedObject.scalar>
-      list: Nullable<ReadonlyArray<nestedObject.list>>
-    }
-    export module nestedObject {
-      export type recursive = {
-        recursive: Nullable<recursive.recursive>
-      }
-      export module recursive {
-        export type recursive = {
-          scalar: Nullable<recursive.scalar>
-        }
-        export module recursive {
-          export type scalar = boolean
-        }
-      }
-      export type nested = {
-        scalar: Nullable<nested.scalar>
-      }
-      export module nested {
-        export type scalar = number
-      }
-      export type scalar = boolean
-      export type list = string
-    }
-  }
+export type testNestingMutation_variables = {}
+export type testNestingMutation_data = {
+  nestedObject: Nullable<testNestingMutation_data_nestedObject>
 }
+export type testNestingMutation_data_nestedObject = {
+  recursive: Nullable<testNestingMutation_data_nestedObject_recursive>
+  nested: Nullable<testNestingMutation_data_nestedObject_nested>
+  scalar: Nullable<testNestingMutation_data_nestedObject_scalar>
+  list: Nullable<ReadonlyArray<testNestingMutation_data_nestedObject_list>>
+}
+export type testNestingMutation_data_nestedObject_recursive = {
+  recursive: Nullable<testNestingMutation_data_nestedObject_recursive_recursive>
+}
+export type testNestingMutation_data_nestedObject_recursive_recursive = {
+  scalar: Nullable<
+    testNestingMutation_data_nestedObject_recursive_recursive_scalar
+  >
+}
+export type testNestingMutation_data_nestedObject_recursive_recursive_scalar = boolean
+export type testNestingMutation_data_nestedObject_nested = {
+  scalar: Nullable<testNestingMutation_data_nestedObject_nested_scalar>
+}
+export type testNestingMutation_data_nestedObject_nested_scalar = number
+export type testNestingMutation_data_nestedObject_scalar = boolean
+export type testNestingMutation_data_nestedObject_list = string
 
 export const testMethodsMutation = mutation<
-  testMethodsMutation.variables,
-  testMethodsMutation.data
+  testMethodsMutation_variables,
+  testMethodsMutation_data
 >(gql`
   mutation testMethodsMutation(
     $reqParam: String!
@@ -293,51 +245,43 @@ export const testMethodsMutation = mutation<
     renamedMethod: method2(list2: $list2)
   }
 `)
-export module testMethodsMutation {
-  export type variables = {
-    reqParam: variables.reqParam
-    optParam: variables.optParam
-    input: Nullable<variables.input>
-    list2: ReadonlyArray<variables.list2>
-  }
-  export module variables {
-    export type reqParam = string
-    export type optParam = number
-    export type input = InputType
-    export type list2 = any
-  }
-  export type data = {
-    method: Nullable<data.method>
-    renamedMethod: Nullable<ReadonlyArray<Nullable<data.renamedMethod>>>
-  }
-  export module data {
-    export type method = any
-    export type renamedMethod = any
-  }
+export type testMethodsMutation_variables = {
+  reqParam: testMethodsMutation_variables_reqParam
+  optParam: testMethodsMutation_variables_optParam
+  input: Nullable<testMethodsMutation_variables_input>
+  list2: ReadonlyArray<testMethodsMutation_variables_list2>
 }
+export type testMethodsMutation_variables_reqParam = string
+export type testMethodsMutation_variables_optParam = number
+export type testMethodsMutation_variables_input = InputType
+export type testMethodsMutation_variables_list2 = any
+export type testMethodsMutation_data = {
+  method: Nullable<testMethodsMutation_data_method>
+  renamedMethod: Nullable<
+    ReadonlyArray<Nullable<testMethodsMutation_data_renamedMethod>>
+  >
+}
+export type testMethodsMutation_data_method = any
+export type testMethodsMutation_data_renamedMethod = any
 
 /*
  * GraphQL Input Types
  */
 
 export type InputType = {
-  recursive: Nullable<InputType.recursive>
-  nested: Nullable<InputType.nested>
-  scalar: Nullable<InputType.scalar>
-  list: Nullable<ReadonlyArray<InputType.list>>
+  recursive: Nullable<InputType_recursive>
+  nested: Nullable<InputType_nested>
+  scalar: Nullable<InputType_scalar>
+  list: Nullable<ReadonlyArray<InputType_list>>
 }
-export module InputType {
-  export type recursive = InputType
-  export type nested = NestedInputType
-  export type scalar = boolean
-  export type list = string
-}
+export type InputType_recursive = InputType
+export type InputType_nested = NestedInputType
+export type InputType_scalar = boolean
+export type InputType_list = string
 export type NestedInputType = {
-  scalar: Nullable<NestedInputType.scalar>
+  scalar: Nullable<NestedInputType_scalar>
 }
-export module NestedInputType {
-  export type scalar = number
-}
+export type NestedInputType_scalar = number
 
 /*
  * Boilerplate
