@@ -10,20 +10,17 @@ import ApolloClient, {
   ObservableQuery,
   WatchQueryOptions,
   ApolloCurrentResult,
+  ApolloQueryResult,
 } from 'apollo-client'
 import { FetchResult } from 'apollo-link'
 import { DocumentNode } from 'graphql'
 import gql from 'graphql-tag'
-import { getAllTodos as _getAllTodos } from './types'
 
 /*
  * Operations from src/queries/demo.graphql
  */
 
-export const getAllTodos = query<
-  _getAllTodos.variables,
-  _getAllTodos.variables
->(gql`
+export const getAllTodos = query<getAllTodos_variables, getAllTodos_data>(gql`
   query getAllTodos {
     todoItems {
       id
@@ -32,48 +29,50 @@ export const getAllTodos = query<
     }
   }
 `)
+export type getAllTodos_variables = {}
+export type getAllTodos_data = {
+  todoItems: ReadonlyArray<getAllTodos_data_todoItems>
+}
+export type getAllTodos_data_todoItems = {
+  id: getAllTodos_data_todoItems_id
+  title: getAllTodos_data_todoItems_title
+  isDone: getAllTodos_data_todoItems_isDone
+}
+export type getAllTodos_data_todoItems_id = string
+export type getAllTodos_data_todoItems_title = string
+export type getAllTodos_data_todoItems_isDone = boolean
 
-// export const createTodo = mutation<createTodo.variables, createTodo.data>(gql`
-//   mutation createTodo($todoItem: TodoItemInput!) {
-//     createTodoItem(todoItem: $todoItem) {
-//       id
-//     }
-//   }
-// `)
-// export module createTodo {
-//   export type variables = {
-//     todoItem: variables.todoItem
-//   }
-//   export module variables {
-//     export type todoItem = TodoItemInput
-//   }
-//   export type data = {
-//     createTodoItem: data.createTodoItem
-//   }
-//   export module data {
-//     export type createTodoItem = {
-//       id: createTodoItem.id
-//     }
-//     export module createTodoItem {
-//       export type id = string
-//     }
-//   }
-// }
+export const createTodo = mutation<createTodo_variables, createTodo_data>(gql`
+  mutation createTodo($todoItem: TodoItemInput!) {
+    createTodoItem(todoItem: $todoItem) {
+      id
+    }
+  }
+`)
+export type createTodo_variables = {
+  todoItem: createTodo_variables_todoItem
+}
+export type createTodo_variables_todoItem = TodoItemInput
+export type createTodo_data = {
+  createTodoItem: createTodo_data_createTodoItem
+}
+export type createTodo_data_createTodoItem = {
+  id: createTodo_data_createTodoItem_id
+}
+export type createTodo_data_createTodoItem_id = string
 
 /*
  * GraphQL Input Types
  */
 
-// export type TodoItemInput = {
-//   title: TodoItemInput.title
-//   description: Nullable<TodoItemInput.description>
-//   dueDate: Nullable<TodoItemInput.dueDate>
-// }
-// export module TodoItemInput {
-//   export type title = string
-//   export type description = string
-//   export type dueDate = any
-// }
+export type TodoItemInput = {
+  title: TodoItemInput_title
+  description: Nullable<TodoItemInput_description>
+  dueDate: Nullable<TodoItemInput_dueDate>
+}
+export type TodoItemInput_title = string
+export type TodoItemInput_description = string
+export type TodoItemInput_dueDate = any
 
 /*
  * Boilerplate
@@ -122,13 +121,13 @@ function query<V, D>(doc: DocumentNode) {
 // the query result changes.
 export function useApolloQuery<D, V>(
   configuredQuery: (client: ApolloClient<any>) => ObservableQuery<D, V>
-): [ApolloCurrentResult<D>, ObservableQuery<D, V>] {
+): [Nullable<ApolloQueryResult<D>>, ObservableQuery<D, V>] {
   const { apolloClient } = useContext(apolloContext)
   if (!apolloClient) throw 'No ApolloClient provided'
 
   const query = configuredQuery(apolloClient)
 
-  const [result, setResult] = useState(query.currentResult())
+  const [result, setResult] = useState<Nullable<ApolloQueryResult<D>>>(null)
   useEffect(() => {
     const subscription = query.subscribe(setResult)
     return () => subscription.unsubscribe()

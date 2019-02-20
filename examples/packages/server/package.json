@@ -2,19 +2,19 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "ts-node src/index.ts"
-  },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "ts-node": "^8.0.2",
-    "typescript": "^3.3.3"
+  "scripts": {
+    "start": "nodemon -e ts -w ./src -x ts-node src/index.ts"
   },
   "dependencies": {
     "graphql-yoga": "^1.17.4",
     "reflect-metadata": "^0.1.13",
     "type-graphql": "^0.16.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10",
+    "ts-node": "^8.0.2",
+    "typescript": "^3.3.3"
   }
 }

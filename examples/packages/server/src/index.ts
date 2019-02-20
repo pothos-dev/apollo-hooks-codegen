@@ -10,5 +10,10 @@ export async function startServer() {
   })
 
   const server = new GraphQLServer({ schema })
-  server.start(() => console.log('Server is running on localhost:4000'))
+  server.start(
+    {
+      cors: { origin: true },
+    },
+    () => console.log('Server is running on localhost:4000')
+  )
 }
