@@ -147,13 +147,13 @@ function query<V, D>(doc: DocumentNode) {
 // the query result changes.
 export function useApolloQuery<D, V>(
   configuredQuery: (client: ApolloClient<any>) => ObservableQuery<D, V>
-): [ApolloCurrentResult<D>, ObservableQuery<D, V>] {
+): [Nullable<ApolloQueryResult<D>>, ObservableQuery<D, V>] {
   const { apolloClient } = useContext(apolloContext)
   if (!apolloClient) throw 'No ApolloClient provided'
 
   const query = configuredQuery(apolloClient)
 
-  const [result, setResult] = useState(query.currentResult())
+  const [result, setResult] = useState<Nullable<ApolloQueryResult<D>>>(null)
   useEffect(() => {
     const subscription = query.subscribe(setResult)
     return () => subscription.unsubscribe()
