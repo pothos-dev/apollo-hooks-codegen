@@ -9,7 +9,6 @@ import ApolloClient, {
   MutationOptions,
   ObservableQuery,
   WatchQueryOptions,
-  ApolloCurrentResult,
   ApolloQueryResult,
 } from 'apollo-client'
 import { FetchResult } from 'apollo-link'
@@ -67,8 +66,8 @@ export type createTodo_data_createTodoItem_id = string
 
 export type TodoItemInput = {
   title: TodoItemInput_title
-  description: Nullable<TodoItemInput_description>
-  dueDate: Nullable<TodoItemInput_dueDate>
+  description?: Nullable<TodoItemInput_description>
+  dueDate?: Nullable<TodoItemInput_dueDate>
 }
 export type TodoItemInput_title = string
 export type TodoItemInput_description = string
@@ -79,6 +78,7 @@ export type TodoItemInput_dueDate = any
  */
 
 type Nullable<T> = T | null
+type Optional<T> = T | null | undefined
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 type Error = any
 type QueryOpts<V> = Omit<WatchQueryOptions<V>, 'query'>

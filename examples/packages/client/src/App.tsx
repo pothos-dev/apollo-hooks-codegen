@@ -25,11 +25,7 @@ function MyComponent() {
   function onSubmit(text: string) {
     mutate({
       variables: {
-        todoItem: {
-          title: text,
-          description: null,
-          dueDate: null,
-        },
+        todoItem: { title: text },
       },
       refetchQueries: ['getAllTodos'],
     })

@@ -69,12 +69,14 @@ function formatType(type: TypeIR): string {
 
   function formatField(field: TypeIR) {
     let type = typeName(field)
+    let optional = false
     if (field.modifiers) {
+      optional = field.modifiers[0] == 'Nullable'
       for (const modifier of field.modifiers.reverse()) {
         type = modifier + '<' + type + '>'
       }
     }
-    return field.name + ': ' + type
+    return field.name + (optional ? '?: ' : ': ') + type
   }
 }
 
@@ -92,7 +94,7 @@ import ApolloClient, {
   MutationOptions,
   ObservableQuery,
   WatchQueryOptions,
-  ApolloCurrentResult,
+  ApolloQueryResult,
 } from 'apollo-client'
 import { FetchResult } from 'apollo-link'
 import { DocumentNode } from 'graphql'
@@ -105,6 +107,7 @@ const boilerplate = `
  */
 
 type Nullable<T> = T | null
+type Optional<T> = T | null | undefined
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 type Error = any
 type QueryOpts<V> = Omit<WatchQueryOptions<V>, 'query'>
