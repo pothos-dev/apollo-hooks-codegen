@@ -41,7 +41,7 @@ function TodoListItem(props: { item: TodoItem }) {
 
   return (
     <div style={{ display: 'flex', backgroundColor: '#0001', margin: 2 }}>
-      <input type="checkbox" checked={isDone} />
+      <input type="checkbox" defaultChecked={isDone} />
       <div style={{ textDecoration }}>{title}</div>
     </div>
   )

@@ -6,7 +6,7 @@
 
 
 import * as React from 'react'
-import { createContext, useEffect, useState, useContext } from 'react'
+import { createContext, useEffect, useState, useContext, useRef } from 'react'
 import ApolloClient, {
   MutationOptions,
   ObservableQuery,
@@ -265,11 +265,10 @@ export type NestedInputType_scalar = number
  */
 
 type Nullable<T> = T | null
-type Optional<T> = T | null | undefined
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
-type Error = any
 type QueryOpts<V> = Omit<WatchQueryOptions<V>, 'query'>
 type MutateOpts<D, V> = Omit<MutationOptions<D, V>, 'mutation'>
+type SubscriptionOpts<V> = Omit<SubscriptionOptions<V>, 'query'>
 
 // We grab the ApolloClient from this context within our hooks
 type ContextType = { apolloClient?: ApolloClient<any> }
@@ -289,16 +288,6 @@ export function ApolloHooksProvider({
     value: { apolloClient },
   }
   return React.createElement(elementType, elementProps, children)
-}
-
-// Converts a gql-snippet into a user-callable function that takes options,
-// which can then be passed to useApolloQuery to execute the query.
-function query<V, D>(doc: DocumentNode) {
-  return function configureQuery(opts: QueryOpts<V> = {}) {
-    return function executeQuery(client: ApolloClient<any>) {
-      return client.watchQuery<D>({ query: doc, ...opts })
-    }
-  }
 }
 
 // Executes a query that has been created by calling the exported function with
@@ -328,18 +317,6 @@ export function useApolloQuery<D, V>(
   return result
 }
 
-// Converts a gql-snippet into a user-callable function that takes options,
-// which can then be passed to useApolloMutation to provide the mutate function.
-function mutation<V, D>(mutation: DocumentNode) {
-  return function configureMutation(opts: MutateOpts<D, V> = {}) {
-    return function loadMutation(client: ApolloClient<any>) {
-      return function executeMutation(opts2: MutateOpts<D, V> = {}) {
-        return client.mutate<D>({ mutation, ...opts, ...opts2 })
-      }
-    }
-  }
-}
-
 // Prepares a mutate function when supplied with the exported function with
 // the same name as the mutation operation.
 // The React Hooks rules apply - this function must be called unconditionally
@@ -353,4 +330,51 @@ export function useApolloMutation<D, V>(
   if (!apolloClient) throw 'No ApolloClient provided'
   const mutate = configuredMutation(apolloClient)
   return mutate
+}
+
+export function useApolloSubscription<D>(
+  configuredSubscription: (client: ApolloClient<any>) => Observable<D>
+): Nullable<D> {
+  const { apolloClient } = useContext(apolloContext)
+  if (!apolloClient) throw 'No ApolloClient provided'
+
+  const observable = useRef(configuredSubscription(apolloClient))
+
+  const [result, setResult] = useState<Nullable<D>>(null)
+  useEffect(() => {
+    const subscription = observable.current.subscribe(setResult)
+    return () => subscription.unsubscribe()
+  })
+
+  return result
+}
+
+// Converts a gql-snippet into a user-callable function that takes options,
+// which can then be passed to useApolloMutation to provide the mutate function.
+function mutation<V, D>(mutation: DocumentNode) {
+  return function configureMutation(opts: MutateOpts<D, V> = {}) {
+    return function loadMutation(client: ApolloClient<any>) {
+      return function executeMutation(opts2: MutateOpts<D, V> = {}) {
+        return client.mutate<D>({ mutation, ...opts, ...opts2 })
+      }
+    }
+  }
+}
+
+// Converts a gql-snippet into a user-callable function that takes options,
+// which can then be passed to useApolloQuery to execute the query.
+function query<V, D>(doc: DocumentNode) {
+  return function configureQuery(opts: QueryOpts<V> = {}) {
+    return function executeQuery(client: ApolloClient<any>) {
+      return client.watchQuery<D>({ query: doc, ...opts })
+    }
+  }
+}
+
+function subscription<V, D>(doc: DocumentNode) {
+  return function configureSubscription(opts: SubscriptionOpts<V> = {}) {
+    return function executeSubscription(client: ApolloClient<any>) {
+      return client.subscribe<D, V>({ query: doc, ...opts })
+    }
+  }
 }

@@ -7,6 +7,10 @@ import {
   InputType,
   Mutation,
   Arg,
+  Subscription,
+  Root,
+  PubSubEngine,
+  PubSub,
 } from 'type-graphql'
 
 @ObjectType()
@@ -47,7 +51,10 @@ export class TodoItemResolver {
   }
 
   @Mutation(returns => TodoItem)
-  createTodoItem(@Arg('todoItem') input: TodoItemInput) {
+  createTodoItem(
+    @Arg('todoItem') input: TodoItemInput,
+    @PubSub() pubSub: PubSubEngine
+  ) {
     const todoItem: TodoItem = {
       id: (this.todos.length + 1).toString(),
       title: input.title,
@@ -57,6 +64,13 @@ export class TodoItemResolver {
     }
 
     this.todos.push(todoItem)
+    pubSub.publish('NEW_TODO_ITEM', todoItem)
+
+    return todoItem
+  }
+
+  @Subscription({ topics: 'NEW_TODO_ITEM' })
+  subscribeTodoItems(@Root() todoItem: TodoItem): TodoItem {
     return todoItem
   }
 

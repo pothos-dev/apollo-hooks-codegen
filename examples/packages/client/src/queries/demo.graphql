@@ -11,3 +11,11 @@ mutation createTodo($todoItem: TodoItemInput!) {
     id
   }
 }
+
+subscription subscribeTodos {
+  subscribeTodoItems {
+    id
+    title
+    isDone
+  }
+}
