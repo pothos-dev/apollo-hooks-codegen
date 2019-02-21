@@ -45,9 +45,9 @@ function useTodoItems() {
     todoItems.current = [...query.data.todoItems]
   }
 
-  // if (todoItems.current && subscription) {
-  //   todoItems.current.push(subscription.subscribeTodoItems)
-  // }
+  if (todoItems.current && subscription) {
+    todoItems.current.push(subscription.subscribeTodoItems)
+  }
 
   return todoItems.current
 }

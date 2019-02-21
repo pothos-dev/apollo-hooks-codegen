@@ -13,9 +13,11 @@
     "apollo-cache-inmemory": "^1.4.2",
     "apollo-client": "^2.4.12",
     "apollo-link-http": "^1.5.11",
+    "apollo-link-ws": "^1.0.14",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
-    "react-scripts": "2.1.5"
+    "react-scripts": "2.1.5",
+    "subscriptions-transport-ws": "^0.9.15"
   },
   "devDependencies": {
     "graphql-code-generator": "^0.16.1"

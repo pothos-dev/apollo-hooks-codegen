@@ -172,7 +172,7 @@ export function useApolloMutation<D, V>(
 }
 
 export function useApolloSubscription<D>(
-  configuredSubscription: (client: ApolloClient<any>) => Observable<D>
+  configuredSubscription: (client: ApolloClient<any>) => Observable<{ data: D }>
 ): Nullable<D> {
   const { apolloClient } = useContext(apolloContext)
   if (!apolloClient) throw 'No ApolloClient provided'
@@ -181,8 +181,10 @@ export function useApolloSubscription<D>(
 
   const [result, setResult] = useState<Nullable<D>>(null)
   useEffect(() => {
-    const subscription = observable.current.subscribe(item => console.log(item))
-    // return () => subscription.unsubscribe()
+    const subscription = observable.current.subscribe(({ data }) =>
+      setResult(data)
+    )
+    return () => subscription.unsubscribe()
   }, [])
 
   return result
@@ -213,7 +215,9 @@ function query<V, D>(doc: DocumentNode) {
 function subscription<V, D>(doc: DocumentNode) {
   return function configureSubscription(opts: SubscriptionOpts<V> = {}) {
     return function executeSubscription(client: ApolloClient<any>) {
-      return client.subscribe<D, V>({ query: doc, ...opts })
+      return client.subscribe({ query: doc, ...opts }) as Observable<{
+        data: D
+      }>
     }
   }
 }
