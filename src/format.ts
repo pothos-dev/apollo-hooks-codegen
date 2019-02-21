@@ -149,20 +149,25 @@ function query<V, D>(doc: DocumentNode) {
 // within a functional React Component and will rerender the component whenever
 // the query result changes.
 export function useApolloQuery<D, V>(
-  configuredQuery: (client: ApolloClient<any>) => ObservableQuery<D, V>
-): [Nullable<ApolloQueryResult<D>>, ObservableQuery<D, V>] {
+  configuredQuery: (client: ApolloClient<any>) => ObservableQuery<D, V>,
+  queryCallback?: (query: ObservableQuery<D, V>) => void
+): Nullable<ApolloQueryResult<D> {
   const { apolloClient } = useContext(apolloContext)
   if (!apolloClient) throw 'No ApolloClient provided'
 
-  const query = configuredQuery(apolloClient)
+  const query = useRef(configuredQuery(apolloClient))
 
   const [result, setResult] = useState<Nullable<ApolloQueryResult<D>>>(null)
   useEffect(() => {
-    const subscription = query.subscribe(setResult)
+    if (queryCallback) {
+      queryCallback(query.current)
+    }
+
+    const subscription = query.current.subscribe(setResult)
     return () => subscription.unsubscribe()
   }, [])
 
-  return [result, query]
+  return result
 }
 
 // Converts a gql-snippet into a user-callable function that takes options,
