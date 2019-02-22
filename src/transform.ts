@@ -30,6 +30,8 @@ import {
   DocumentNode,
   NameNode,
   GraphQLEnumType,
+  FragmentDefinitionNode,
+  FragmentSpreadNode,
 } from 'graphql'
 import {
   TypeIR,
@@ -56,20 +58,12 @@ export function transform(
   function transformDocumentFile(file: DocumentFile): FileIR {
     return {
       filePath: file.filePath,
-      operations: transformDocumentNode(file.content),
-    }
-  }
-
-  function transformDocumentNode(node: DocumentNode): OperationIR[] {
-    return node.definitions.map(transformDefinitionNode)
-  }
-
-  function transformDefinitionNode(node: DefinitionNode): OperationIR {
-    switch (node.kind) {
-      case 'OperationDefinition':
-        return transformOperationDefinitionNode(node)
-      default:
-        throw 'unhandled DefinitionNode.kind = ' + node.kind
+      operations: file.content.definitions
+        .filter(it => it.kind == 'OperationDefinition')
+        .map(transformOperationDefinitionNode),
+      fragments: file.content.definitions
+        .filter(it => it.kind == 'FragmentDefinition')
+        .map(transformFragmentDefinitionNode),
     }
   }
 
@@ -82,6 +76,23 @@ export function transform(
     const variables = extractVariables([name], node)
     const data = extractData([name], node)
     return { name, operationType, gqlExpression, data, variables }
+  }
+
+  function transformFragmentDefinitionNode(
+    node: FragmentDefinitionNode
+  ): TypeIR {
+    const name = node.name.value
+    const namespace: string[] = []
+    const schemaType = schema.getType(
+      node.typeCondition.name.value
+    ) as GraphQLObjectType
+    const { fields, fragments } = transformObject(
+      namespace,
+      node.selectionSet,
+      schemaType
+    )
+
+    return { namespace, name, fields, fragments }
   }
 
   function extractGQLExpression(node: OperationDefinitionNode): string {
@@ -252,35 +263,27 @@ export function transform(
     node: OperationDefinitionNode
   ): TypeIR {
     const name = 'data'
-    const fields = getTypeInfoFields(
+    const { fields, fragments } = transformObject(
       [...namespace, 'data'],
       node.selectionSet,
       getSchemaRootObject(node.operation)
     )
 
-    return { namespace, name, fields }
+    return { namespace, name, fields, fragments }
   }
 
-  function getTypeInfoFields(
+  function transformObject(
     namespace: string[],
     selectionSet: SelectionSetNode,
     object: GraphQLObjectType
-  ): TypeIR[] {
-    return selectionSet.selections.map(selectionNode =>
-      getTypeInfo(namespace, selectionNode, object)
-    )
-  }
-
-  function getTypeInfo(
-    namespace: string[],
-    node: SelectionNode,
-    object: GraphQLObjectType
-  ): TypeIR {
-    switch (node.kind) {
-      case 'Field':
-        return getTypeInfoFromField(namespace, node, object)
-      default:
-        throw 'unhandled SelectionNode.kind = ' + node.kind
+  ): { fields: TypeIR[]; fragments: string[] } {
+    return {
+      fields: selectionSet.selections
+        .filter(it => it.kind == 'Field')
+        .map(it => getTypeInfoFromField(namespace, it as FieldNode, object)),
+      fragments: selectionSet.selections
+        .filter(it => it.kind == 'FragmentSpread')
+        .map(it => (it as FragmentSpreadNode).name.value),
     }
   }
 
@@ -297,13 +300,17 @@ export function transform(
 
     const { modifiers, baseType } = getModifiersAndBaseType(schemaType)
 
-    let fields, scalar
+    // Todo add fragments
+
+    let fields, scalar, fragments
     if (isObjectType(baseType)) {
-      fields = getTypeInfoFields(
+      const fieldsAndFragments = transformObject(
         [...namespace, name],
         node.selectionSet,
         baseType
       )
+      fields = fieldsAndFragments.fields
+      fragments = fieldsAndFragments.fragments
     } else if (isScalarType(baseType)) {
       scalar = transformScalarType(baseType)
     } else if (isEnumType(baseType)) {
@@ -313,13 +320,7 @@ export function transform(
     if (!fields && !scalar)
       throw 'Expected Field to contain either scalar or subfields'
 
-    return {
-      namespace,
-      name,
-      modifiers,
-      fields,
-      scalar,
-    }
+    return { namespace, name, modifiers, fields, scalar, fragments }
 
     // Strip all combination of Nullable and Array modifiers from the type,
     // which yields list of modifiers and the base type

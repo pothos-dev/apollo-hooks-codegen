@@ -14,6 +14,7 @@ export interface PluginIR {
 export interface FileIR {
   filePath: string
   operations: OperationIR[]
+  fragments: TypeIR[]
 }
 
 export interface OperationIR {
@@ -30,6 +31,7 @@ export interface TypeIR {
   modifiers?: Modifier[]
   fields?: TypeIR[] // mutually exclusive with scalar
   scalar?: string // mutually exclusive with fields
+  fragments?: string[]
 }
 
 export type OperationType = 'query' | 'mutation' | 'subscription'

@@ -5,22 +5,10 @@ export function format(plugin: PluginIR): string {
     disclaimer,
     imports,
     '',
-    ...plugin.files.map(formatFile),
     formatInputTypes(plugin.inputTypes),
+    ...plugin.files.map(formatFile),
     '',
     boilerplate
-  )
-}
-
-function formatFile(file: FileIR): string {
-  return join(
-    '',
-    '',
-    '/*',
-    ' * Operations from ' + file.filePath,
-    ' */',
-    '',
-    ...file.operations.map(formatOperation)
   )
 }
 
@@ -34,6 +22,23 @@ function formatInputTypes(inputTypes: TypeIR[]): string {
     '',
     ...inputTypes.map(formatType)
   )
+}
+
+function formatFile(file: FileIR): string {
+  return join(
+    '',
+    '',
+    '/*',
+    ' * Operations from ' + file.filePath,
+    ' */',
+    '',
+    ...file.fragments.map(formatFragments),
+    ...file.operations.map(formatOperation)
+  )
+}
+
+function formatFragments(fragmentType: TypeIR): string {
+  return formatType(fragmentType)
 }
 
 function formatOperation(operation: OperationIR): string {
@@ -53,9 +58,10 @@ function typeName(type: TypeIR): string {
 
 function formatType(type: TypeIR): string {
   const leftSide = 'export type ' + typeName(type)
+  const fragments = type.fragments ? type.fragments.join(' & ') + ' & ' : ''
   const rightSide = type.scalar || formatInterface(type.fields)
 
-  let output = leftSide + ' = ' + rightSide
+  let output = leftSide + ' = ' + fragments + rightSide
 
   if (type.fields) {
     output += join('', ...type.fields.map(formatType))

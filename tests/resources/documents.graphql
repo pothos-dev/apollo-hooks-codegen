@@ -79,3 +79,13 @@ mutation testMethodsMutation(
   method(requiredParam: $reqParam, optionalParam: $optParam, input: $input)
   renamedMethod: method2(list2: $list2)
 }
+
+fragment ObjectTypeFields on ObjectType {
+  scalar
+}
+
+query testFragments {
+  nestedObject {
+    ...ObjectTypeFields
+  }
+}

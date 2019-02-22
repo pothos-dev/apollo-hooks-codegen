@@ -9,23 +9,42 @@ import ApolloClient, {
   MutationOptions,
   ObservableQuery,
   WatchQueryOptions,
-  ApolloQueryResult,
   SubscriptionOptions,
+  ApolloQueryResult,
 } from 'apollo-client'
 import { FetchResult, Observable } from 'apollo-link'
 import { DocumentNode } from 'graphql'
 import gql from 'graphql-tag'
 
 /*
+ * GraphQL Input Types
+ */
+
+export type TodoItemInput = {
+  title: TodoItemInput_title
+  description?: Nullable<TodoItemInput_description>
+  dueDate?: Nullable<TodoItemInput_dueDate>
+}
+export type TodoItemInput_title = string
+export type TodoItemInput_description = string
+export type TodoItemInput_dueDate = any
+
+/*
  * Operations from src/queries/demo.graphql
  */
 
+export type TodoParts = {
+  id: id
+  title: title
+  isDone: isDone
+}
+export type id = string
+export type title = string
+export type isDone = boolean
 export const getAllTodos = query<getAllTodos_variables, getAllTodos_data>(gql`
   query getAllTodos {
     todoItems {
-      id
-      title
-      isDone
+      ...TodoParts
     }
   }
 `)
@@ -33,14 +52,23 @@ export type getAllTodos_variables = {}
 export type getAllTodos_data = {
   todoItems: ReadonlyArray<getAllTodos_data_todoItems>
 }
-export type getAllTodos_data_todoItems = {
-  id: getAllTodos_data_todoItems_id
-  title: getAllTodos_data_todoItems_title
-  isDone: getAllTodos_data_todoItems_isDone
+export type getAllTodos_data_todoItems = {}
+
+export const subscribeTodos = subscription<
+  subscribeTodos_variables,
+  subscribeTodos_data
+>(gql`
+  subscription subscribeTodos {
+    subscribeTodoItems {
+      ...TodoParts
+    }
+  }
+`)
+export type subscribeTodos_variables = {}
+export type subscribeTodos_data = {
+  subscribeTodoItems: subscribeTodos_data_subscribeTodoItems
 }
-export type getAllTodos_data_todoItems_id = string
-export type getAllTodos_data_todoItems_title = string
-export type getAllTodos_data_todoItems_isDone = boolean
+export type subscribeTodos_data_subscribeTodoItems = {}
 
 export const createTodo = mutation<createTodo_variables, createTodo_data>(gql`
   mutation createTodo($todoItem: TodoItemInput!) {
@@ -60,44 +88,6 @@ export type createTodo_data_createTodoItem = {
   id: createTodo_data_createTodoItem_id
 }
 export type createTodo_data_createTodoItem_id = string
-
-export const subscribeTodos = subscription<
-  subscribeTodos_variables,
-  subscribeTodos_data
->(gql`
-  subscription subscribeTodos {
-    subscribeTodoItems {
-      id
-      title
-      isDone
-    }
-  }
-`)
-export type subscribeTodos_variables = {}
-export type subscribeTodos_data = {
-  subscribeTodoItems: subscribeTodos_data_subscribeTodoItems
-}
-export type subscribeTodos_data_subscribeTodoItems = {
-  id: subscribeTodos_data_subscribeTodoItems_id
-  title: subscribeTodos_data_subscribeTodoItems_title
-  isDone: subscribeTodos_data_subscribeTodoItems_isDone
-}
-export type subscribeTodos_data_subscribeTodoItems_id = string
-export type subscribeTodos_data_subscribeTodoItems_title = string
-export type subscribeTodos_data_subscribeTodoItems_isDone = boolean
-
-/*
- * GraphQL Input Types
- */
-
-export type TodoItemInput = {
-  title: TodoItemInput_title
-  description?: Nullable<TodoItemInput_description>
-  dueDate?: Nullable<TodoItemInput_dueDate>
-}
-export type TodoItemInput_title = string
-export type TodoItemInput_description = string
-export type TodoItemInput_dueDate = any
 
 /*
  * Boilerplate
@@ -172,7 +162,7 @@ export function useApolloMutation<D, V>(
 }
 
 export function useApolloSubscription<D>(
-  configuredSubscription: (client: ApolloClient<any>) => Observable<{ data: D }>
+  configuredSubscription: (client: ApolloClient<any>) => Observable<D>
 ): Nullable<D> {
   const { apolloClient } = useContext(apolloContext)
   if (!apolloClient) throw 'No ApolloClient provided'
@@ -181,11 +171,9 @@ export function useApolloSubscription<D>(
 
   const [result, setResult] = useState<Nullable<D>>(null)
   useEffect(() => {
-    const subscription = observable.current.subscribe(({ data }) =>
-      setResult(data)
-    )
+    const subscription = observable.current.subscribe(setResult)
     return () => subscription.unsubscribe()
-  }, [])
+  })
 
   return result
 }
@@ -215,9 +203,7 @@ function query<V, D>(doc: DocumentNode) {
 function subscription<V, D>(doc: DocumentNode) {
   return function configureSubscription(opts: SubscriptionOpts<V> = {}) {
     return function executeSubscription(client: ApolloClient<any>) {
-      return client.subscribe({ query: doc, ...opts }) as Observable<{
-        data: D
-      }>
+      return client.subscribe<D, V>({ query: doc, ...opts })
     }
   }
 }

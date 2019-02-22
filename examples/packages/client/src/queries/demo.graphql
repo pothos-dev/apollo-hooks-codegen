@@ -1,21 +1,23 @@
+fragment TodoParts on TodoItem {
+  id
+  title
+  isDone
+}
+
 query getAllTodos {
   todoItems {
-    id
-    title
-    isDone
+    ...TodoParts
+  }
+}
+
+subscription subscribeTodos {
+  subscribeTodoItems {
+    ...TodoParts
   }
 }
 
 mutation createTodo($todoItem: TodoItemInput!) {
   createTodoItem(todoItem: $todoItem) {
     id
-  }
-}
-
-subscription subscribeTodos {
-  subscribeTodoItems {
-    id
-    title
-    isDone
   }
 }
