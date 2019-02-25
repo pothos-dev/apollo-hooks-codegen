@@ -11,7 +11,7 @@ query getAllTodos {
 }
 
 subscription subscribeTodos {
-  subscribeTodoItems {
+  newTodoItem: subscribeTodoItems {
     ...TodoParts
   }
 }

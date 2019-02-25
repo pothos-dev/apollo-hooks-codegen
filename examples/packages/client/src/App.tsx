@@ -23,13 +23,19 @@ export default function App() {
 function MyComponent() {
   const mutate = useMutation(createTodo())
 
-  const todoItems = useQueryWithSubscription(
+  const queryResult = useQueryWithSubscription(
     getAllTodos(),
     subscribeTodos(),
-    queryData => queryData.todoItems,
-    (todoItems, e) => [...todoItems, e.subscribeTodoItems]
+    (queryData, sub) => {
+      const newTodoItem = sub.subscribeTodoItems
+      return {
+        todoItems: [...queryData.todoItems, newTodoItem],
+      }
+    }
   )
-  if (!todoItems) return null
+
+  if (!queryResult.data) return null
+  const todoItems = queryResult.data.todoItems
 
   function onSubmit(text: string) {
     mutate({

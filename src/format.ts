@@ -148,6 +148,9 @@ type Omit<T, K> = Pick<T, Exclude<keyof T, K>>
 type QueryOpts<V> = Omit<WatchQueryOptions<V>, 'query'>
 type MutateOpts<D, V> = Omit<MutationOptions<D, V>, 'mutation'>
 type SubscriptionOpts<V> = Omit<SubscriptionOptions<V>, 'query'>
+type UseQueryResult<D> = Omit<ApolloCurrentResult<D>, 'data'> & {
+  data: Nullable<D>
+}
 
 // We grab the ApolloClient from this context within our hooks
 type ContextType = { apolloClient?: ApolloClient<any> }
@@ -159,7 +162,7 @@ export function ApolloHooksProvider({
   children,
   apolloClient,
 }: {
-  children?: React.ReactNode
+  children?: any
   apolloClient: ApolloClient<any> | undefined
 }) {
   const elementType = apolloContext.Provider
@@ -177,19 +180,32 @@ export function ApolloHooksProvider({
 export function useQuery<D, V>(
   configuredQuery: (client: ApolloClient<any>) => ObservableQuery<D, V>,
   queryCallback?: (query: ObservableQuery<D, V>) => void
-): Nullable<ApolloQueryResult<D>> {
+): UseQueryResult<D> {
   const { apolloClient } = useContext(apolloContext)
   if (!apolloClient) throw 'No ApolloClient provided'
 
-  const query = useRef(configuredQuery(apolloClient))
+  const queryRef = useRef(configuredQuery(apolloClient))
+  const query = queryRef.current
 
-  const [result, setResult] = useState<Nullable<ApolloQueryResult<D>>>(null)
+  const [result, setResult] = useState(() => {
+    const initialResult = query.currentResult()
+    const data =
+      initialResult.loading || initialResult.partial
+        ? null
+        : (initialResult.data as D)
+    return { ...initialResult, data }
+  })
+
   useEffect(() => {
     if (queryCallback) {
-      queryCallback(query.current)
+      queryCallback(query)
     }
 
-    const subscription = query.current.subscribe(setResult)
+    const subscription = query.subscribe(
+      currentResult => setResult(currentResult),
+      error => setResult({ ...result, error, loading: false })
+    )
+
     return () => subscription.unsubscribe()
   }, [])
 
@@ -229,25 +245,23 @@ export function useSubscription<D>(
   return result
 }
 
-export function useQueryWithSubscription<QD, QV, SD, T>(
+export function useQueryWithSubscription<QD, QV, SD>(
   configuredQuery: (client: ApolloClient<any>) => ObservableQuery<QD, QV>,
   configuredSubscription: (
     client: ApolloClient<any>
   ) => Observable<{ data: SD }>,
-  extractDataFromQuery: (queryData: QD) => T,
-  addDataFromSubscription: (current: T, subscriptionData: SD) => T
-) {
+  addDataFromSubscription: (queryData: QD, subscriptionData: SD) => QD
+): UseQueryResult<QD> {
   const queryResult = useQuery(configuredQuery)
   const subscriptionData = useSubscription(configuredSubscription)
 
-  const ref = useRef<T | null>(null)
-  if (ref.current == null && queryResult != null) {
-    ref.current = extractDataFromQuery(queryResult.data)
+  const [result, setResult] = useState(queryResult)
+  if (queryResult != result) setResult(queryResult)
+  if (result.data != null && subscriptionData != null) {
+    const newData = addDataFromSubscription(result.data, subscriptionData)
+    setResult({ ...result, data: newData })
   }
-  if (ref.current != null && subscriptionData != null) {
-    ref.current = addDataFromSubscription(ref.current, subscriptionData)
-  }
-  return ref.current
+  return result
 }
 
 // Converts a gql-snippet into a user-callable function that takes options,
@@ -279,6 +293,7 @@ function subscription<V, D>(doc: DocumentNode) {
     }
   }
 }
+
 `
 
 function join(...lines: string[]) {
