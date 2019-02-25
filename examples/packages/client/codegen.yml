@@ -2,6 +2,6 @@ schema: http://localhost:4000
 documents: src/queries/demo.graphql
 overwrite: true
 generates:
-  ./src/queries/index.ts:
+  ./src/queries/demo.graphql.ts:
     # Using an absolute path here because graphql-code-generator won't ../ in paths
-    - /home/stargazer/code/apollo-hooks-codegen/dist/index.js
+    - apollo-hooks-codegen

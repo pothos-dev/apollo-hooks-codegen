@@ -20,6 +20,7 @@
     "subscriptions-transport-ws": "^0.9.15"
   },
   "devDependencies": {
+    "apollo-hooks-codegen": "^1.0.0",
     "graphql-code-generator": "^0.16.1"
   },
   "eslintConfig": {

@@ -11,11 +11,11 @@
     "graphql-code-generator",
     "typescript"
   ],
+  "files": [
+    "/dist"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": [
-    "./dist/**"
-  ],
   "scripts": {
     "try": "npm run build && npm run generate",
     "build": "tsc",
