@@ -30,29 +30,44 @@ export type TodoItemInput_description = string
 export type TodoItemInput_dueDate = any
 
 /*
- * Operations from src/queries/demo.graphql
+ * Fragments from src/queries/demo.graphql
  */
 
 export type TodoParts = {
-  id: id
-  title: title
-  isDone: isDone
+  id: TodoParts_id
+  title: TodoParts_title
+  isDone: TodoParts_isDone
 }
-export type id = string
-export type title = string
-export type isDone = boolean
+
+export type TodoParts_id = string
+export type TodoParts_title = string
+export type TodoParts_isDone = boolean
+
+const _gql_TodoParts = gql`
+  fragment TodoParts on TodoItem {
+    id
+    title
+    isDone
+  }
+`
+
+/*
+ * Operations from src/queries/demo.graphql
+ */
+
 export const getAllTodos = query<getAllTodos_variables, getAllTodos_data>(gql`
   query getAllTodos {
     todoItems {
       ...TodoParts
     }
   }
+  ${_gql_TodoParts}
 `)
 export type getAllTodos_variables = {}
 export type getAllTodos_data = {
   todoItems: ReadonlyArray<getAllTodos_data_todoItems>
 }
-export type getAllTodos_data_todoItems = {}
+export type getAllTodos_data_todoItems = TodoParts & {}
 
 export const subscribeTodos = subscription<
   subscribeTodos_variables,
@@ -63,12 +78,13 @@ export const subscribeTodos = subscription<
       ...TodoParts
     }
   }
+  ${_gql_TodoParts}
 `)
 export type subscribeTodos_variables = {}
 export type subscribeTodos_data = {
   subscribeTodoItems: subscribeTodos_data_subscribeTodoItems
 }
-export type subscribeTodos_data_subscribeTodoItems = {}
+export type subscribeTodos_data_subscribeTodoItems = TodoParts & {}
 
 export const createTodo = mutation<createTodo_variables, createTodo_data>(gql`
   mutation createTodo($todoItem: TodoItemInput!) {

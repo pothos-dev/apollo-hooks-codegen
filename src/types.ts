@@ -14,7 +14,7 @@ export interface PluginIR {
 export interface FileIR {
   filePath: string
   operations: OperationIR[]
-  fragments: TypeIR[]
+  fragments: FragmentIR[]
 }
 
 export interface OperationIR {
@@ -23,6 +23,7 @@ export interface OperationIR {
   gqlExpression: string
   variables: TypeIR
   data: TypeIR
+  fragments?: string[]
 }
 
 export interface TypeIR {
@@ -32,6 +33,12 @@ export interface TypeIR {
   fields?: TypeIR[] // mutually exclusive with scalar
   scalar?: string // mutually exclusive with fields
   fragments?: string[]
+}
+
+export interface FragmentIR {
+  name: string
+  gqlExpression: string
+  fields: TypeIR[]
 }
 
 export type OperationType = 'query' | 'mutation' | 'subscription'

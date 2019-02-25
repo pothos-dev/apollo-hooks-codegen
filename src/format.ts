@@ -1,4 +1,4 @@
-import { PluginIR, FileIR, OperationIR, TypeIR } from './types'
+import { PluginIR, FileIR, OperationIR, TypeIR, FragmentIR } from './types'
 
 export function format(plugin: PluginIR): string {
   return join(
@@ -29,23 +29,53 @@ function formatFile(file: FileIR): string {
     '',
     '',
     '/*',
-    ' * Operations from ' + file.filePath,
+    ' * Fragments from ' + file.filePath,
     ' */',
     '',
     ...file.fragments.map(formatFragments),
+    '',
+    '/*',
+    ' * Operations from ' + file.filePath,
+    ' */',
+    '',
     ...file.operations.map(formatOperation)
   )
 }
 
-function formatFragments(fragmentType: TypeIR): string {
-  return formatType(fragmentType)
+function formatFragments(fragmentType: FragmentIR): string {
+  return join(
+    'export type ' +
+      fragmentType.name +
+      ' = ' +
+      formatInterface(fragmentType.fields),
+    '',
+    ...fragmentType.fields.map(formatType),
+    '',
+    'const _gql_' +
+      fragmentType.name +
+      ' = gql`' +
+      fragmentType.gqlExpression +
+      '`'
+  )
 }
 
 function formatOperation(operation: OperationIR): string {
-  const { name, operationType, gqlExpression, data, variables } = operation
+  const {
+    name,
+    operationType,
+    gqlExpression,
+    data,
+    variables,
+    fragments,
+  } = operation
+
+  let gqlFragments = fragments
+    ? join(...fragments.map(it => '${_gql_' + it + '}'))
+    : ''
+  let gql = 'gql`' + gqlExpression + gqlFragments + '`'
 
   return join(
-    `export const ${name} = ${operationType}<${name}_variables, ${name}_data>(${gqlExpression})`,
+    `export const ${name} = ${operationType}<${name}_variables, ${name}_data>(${gql})`,
     formatType(variables),
     formatType(data),
     ``
@@ -68,22 +98,22 @@ function formatType(type: TypeIR): string {
   }
 
   return output
+}
 
-  function formatInterface(fields: TypeIR[]) {
-    return join('{', ...fields.map(field => indent(formatField(field))), '}')
-  }
+function formatInterface(fields: TypeIR[]) {
+  return join('{', ...fields.map(field => indent(formatField(field))), '}')
+}
 
-  function formatField(field: TypeIR) {
-    let type = typeName(field)
-    let optional = false
-    if (field.modifiers) {
-      optional = field.modifiers[0] == 'Nullable'
-      for (const modifier of field.modifiers.reverse()) {
-        type = modifier + '<' + type + '>'
-      }
+function formatField(field: TypeIR) {
+  let type = typeName(field)
+  let optional = false
+  if (field.modifiers) {
+    optional = field.modifiers[0] == 'Nullable'
+    for (const modifier of field.modifiers.reverse()) {
+      type = modifier + '<' + type + '>'
     }
-    return field.name + (optional ? '?: ' : ': ') + type
   }
+  return field.name + (optional ? '?: ' : ': ') + type
 }
 
 const disclaimer = `

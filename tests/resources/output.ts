@@ -36,13 +36,25 @@ export type NestedInputType = {
 export type NestedInputType_scalar = number
 
 /*
- * Operations from ./tests/resources/documents.graphql
+ * Fragments from ./tests/resources/documents.graphql
  */
 
 export type ObjectTypeFields = {
-  scalar?: Nullable<scalar>
+  scalar?: Nullable<ObjectTypeFields_scalar>
 }
-export type scalar = boolean
+
+export type ObjectTypeFields_scalar = boolean
+
+const _gql_ObjectTypeFields = gql`
+  fragment ObjectTypeFields on ObjectType {
+    scalar
+  }
+`
+
+/*
+ * Operations from ./tests/resources/documents.graphql
+ */
+
 export const testScalars = query<testScalars_variables, testScalars_data>(gql`
   query testScalars {
     scalarString
@@ -299,6 +311,7 @@ export const testFragments = query<
       ...ObjectTypeFields
     }
   }
+  ${_gql_ObjectTypeFields}
 `)
 export type testFragments_variables = {}
 export type testFragments_data = {

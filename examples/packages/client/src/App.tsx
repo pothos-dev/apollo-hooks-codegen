@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import {
   ApolloHooksProvider,
   useApolloQuery,
@@ -37,17 +37,17 @@ function MyComponent() {
 }
 
 function useTodoItems() {
-  const todoItems = useRef<TodoItem[] | null>(null)
+  const [todoItems, setTodoItems] = useState(null as TodoItem[] | null)
   const query = useApolloQuery(getAllTodos())
   const subscription = useApolloSubscription(subscribeTodos())
 
-  if (todoItems.current == null && query) {
-    todoItems.current = [...query.data.todoItems]
+  if (todoItems == null && query) {
+    setTodoItems([...query.data.todoItems])
   }
 
-  if (todoItems.current && subscription) {
-    todoItems.current.push(subscription.subscribeTodoItems)
+  if (todoItems && subscription) {
+    setTodoItems([...todoItems, subscription.subscribeTodoItems])
   }
 
-  return todoItems.current
+  return todoItems
 }

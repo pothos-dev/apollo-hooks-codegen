@@ -32,6 +32,7 @@ import {
   GraphQLEnumType,
   FragmentDefinitionNode,
   FragmentSpreadNode,
+  ExecutableDefinitionNode,
 } from 'graphql'
 import {
   TypeIR,
@@ -40,6 +41,7 @@ import {
   Modifier,
   PluginIR,
   FileIR,
+  FragmentIR,
 } from './types'
 import { DocumentFile } from 'graphql-codegen-core'
 
@@ -75,30 +77,53 @@ export function transform(
     const gqlExpression = extractGQLExpression(node)
     const variables = extractVariables([name], node)
     const data = extractData([name], node)
-    return { name, operationType, gqlExpression, data, variables }
+    const fragments = extractFragments(data)
+
+    return { name, operationType, gqlExpression, data, variables, fragments }
+  }
+
+  function extractFragments(rootType: TypeIR): string[] | undefined {
+    let fragmentSet: { [fragment: string]: true } = {}
+
+    recursive(rootType)
+    function recursive(type: TypeIR) {
+      if (type.fields) {
+        for (const field of type.fields) {
+          recursive(field)
+        }
+        if (type.fragments) {
+          for (const fragment of type.fragments) {
+            fragmentSet[fragment] = true
+          }
+        }
+      }
+    }
+
+    let fragments = Object.keys(fragmentSet)
+    if (fragments.length == 0) {
+      return undefined
+    }
+    return fragments
   }
 
   function transformFragmentDefinitionNode(
     node: FragmentDefinitionNode
-  ): TypeIR {
+  ): FragmentIR {
     const name = node.name.value
-    const namespace: string[] = []
+    const gqlExpression = extractGQLExpression(node)
+
+    const namespace = [name]
     const schemaType = schema.getType(
       node.typeCondition.name.value
     ) as GraphQLObjectType
-    const { fields, fragments } = transformObject(
-      namespace,
-      node.selectionSet,
-      schemaType
-    )
+    const { fields } = transformObject(namespace, node.selectionSet, schemaType)
 
-    return { namespace, name, fields, fragments }
+    return { name, fields, gqlExpression }
   }
 
-  function extractGQLExpression(node: OperationDefinitionNode): string {
+  function extractGQLExpression(node: ExecutableDefinitionNode): string {
     const { loc } = node
-    const code = loc.source.body.substring(loc.start, loc.end)
-    return 'gql`' + code + '`'
+    return loc.source.body.substring(loc.start, loc.end)
   }
 
   function extractVariables(

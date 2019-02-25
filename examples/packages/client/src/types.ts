@@ -1,3 +1,3 @@
-import { getAllTodos_data_todoItems } from './queries'
+import { TodoParts } from './queries'
 
-export type TodoItem = getAllTodos_data_todoItems
+export type TodoItem = TodoParts

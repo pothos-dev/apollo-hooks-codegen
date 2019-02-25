@@ -1,0 +1,10 @@
+{
+  "name": "root",
+  "private": true,
+  "scripts": {
+    "start": "lerna run start --stream"
+  },
+  "devDependencies": {
+    "lerna": "^3.4.0"
+  }
+}
