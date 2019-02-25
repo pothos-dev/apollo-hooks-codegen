@@ -33,9 +33,9 @@ function MyComponent() {
       }
     }
   )
-
-  if (!queryResult.data) return null
-  const todoItems = queryResult.data.todoItems
+  if (queryResult.loading) return <div>Loading</div>
+  if (queryResult.error) return <div>Error</div>
+  const todoItems = queryResult.data!.todoItems
 
   function onSubmit(text: string) {
     mutate({
