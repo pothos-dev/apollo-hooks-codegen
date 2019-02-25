@@ -88,7 +88,7 @@ Each function takes an optional argument, which contains additional options. The
 
 ### Queries
 
-useQuery uses [watchQuery](https://www.apollographql.com/docs/react/api/apollo-client.html#ApolloClient.watchQuery) under the hood, so the component will re-render automatically if the queries data changes in Apollo's cache for any reason.
+useQuery uses [watchQuery](https://www.apollographql.com/docs/react/api/apollo-client.html#ApolloClient.watchQuery) under the hood, so the component will re-render automatically if the queried data changes in Apollo's cache for any reason.
 
 ```tsx
 import { useQuery, getAllTodos } from './src/graphql'
