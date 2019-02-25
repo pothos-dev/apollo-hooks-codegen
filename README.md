@@ -2,156 +2,280 @@ This is a plugin for [graphql-code-generator](https://github.com/dotansimha/grap
 
 ## Getting started
 
-This library generates React Hooks, as such it requires React version 16.7 to be used, which is currently in beta.
-
-`npm i react:16.7.0-alpha.2 react-dom:16.7.0-alpha.2`
-
-It also uses [apollo-client](https://github.com/apollographql/apollo-client) under the hood, so we have to install it and its dependencies.
-
-`npm i apollo-client graphql`
-
-Note that we are not using [react-apollo](https://github.com/apollographql/react-apollo), the usual React integration for apollo. You can use it in addition to this library, if you want, but you may not need it.
-
-In the general case, you want to also want to install these additional libraries to set up your ApolloClient, unless you opt to use [Apollo Boost](https://www.apollographql.com/docs/react/advanced/boost-migration.html):
-
-`npm i apollo-cache-inmemory apollo-link-http`
-
-For the actual code generation, we now install these devDependencies:
+### Installation
 
 `npm i -D graphql-code-generator apollo-hooks-codegen`
 
-Now we can start writing GraphQL code. For this example, I'm using the [fakerql.com](https://fakerql.com/) schema:
+### Writing Queries
+
+Unless traditional Apollo usage, we're actually writing all our queries, mutations and subscriptions inside a dedicated .graphql file:
 
 ```graphql
-# /src/example.gql
-mutation login($email: String!, $password: String!) {
-  login(email: $email, password: $password) {
-    token
+# /src/graphql/todos.graphql
+fragment TodoParts on TodoItem {
+  id
+  title
+  isDone
+}
+
+query getAllTodos {
+  todoItems {
+    ...TodoParts
   }
 }
 
-query fetchProducts {
-  allProducts(count: 25) {
+subscription subscribeTodos {
+  newTodoItem: subscribeTodoItems {
+    ...TodoParts
+  }
+}
+
+mutation createTodo($todoItem: TodoItemInput!) {
+  createTodoItem(todoItem: $todoItem) {
     id
-    name
-    price
   }
 }
 ```
 
-Now we invoke the code generator, which we can do [in a number of different ways](https://graphql-code-generator.com/docs/getting-started/codegen-config). I suggest writing a config file and invoking `gql-gen` from an npm script.
+### Setting up codegen
+
+The graphql-code-generator is best configured via a [codegen.yml file](https://graphql-code-generator.com/docs/getting-started/codegen-config).
+
+Here we tell the generator to create a _./src/graphql/index.ts_ file using apollo-hooks-codegen.
 
 ```yml
-# /codegen.yml
-schema: https://fakerql.com/graphql
-documents: src/graphql.gql
+# codegen.yml
+schema: http://localhost:4000
+documents: ./src/graphql/*.graphql
 overwrite: true
 generates:
-  src/graphql.generated.ts:
+  ./src/graphql/index.ts:
     - apollo-hooks-codegen
 ```
 
-```json
-// package.json
-{
-  "scripts": {
-    "codegen": "gql-gen",
-    "codegen:watch": "gql-gen -w"
-  }
-}
-```
+After creating the file, we just run:
+`npx gql-gen`
 
-We're now ready to set up our ApolloClient.
+### Configuring ApolloClient
 
-```typescript
-const apolloClient = new ApolloClient({
-  link: new HttpLink({
-    uri: 'https://fakerql.com/graphql',
-    credentials: 'include',
-  }),
-  cache: new InMemoryCache(),
-})
-```
+The hooks need access to an instance of [ApolloClient](https://www.apollographql.com/docs/react/api/apollo-client.html). If you previously used Apollo, you probably already have this set up, otherwise, refer to the [Get started](https://www.apollographql.com/docs/react/essentials/get-started.html) guide.
 
-We also need to add an ApolloHooksProvider somewhere at the root of our component tree to pass the ApolloClient to the components that will be using our hooks.
+The code generator created an ApolloHooksProvider, which we have to set up at the root of our app:
 
 ```tsx
-import { ApolloHooksProvider } from './graphql.generated.ts'
+import { ApolloHooksProvider } from './src/graphql'
 
-function App() {
+const apolloClient = new ApolloClient({
+  /* ApolloClient configuration here */
+})
+
+function AppWithApollo() {
   return (
     <ApolloHooksProvider apolloClient={apolloClient}>
-      <Router /> {/* or something like that */}
+      <App />
     </ApolloHooksProvider>
   )
 }
 ```
 
-Now we're ready to use the hooks that we've already generated.
+After all of this is done, we can now start using the generated hooks.
+
+## Usage
+
+Every document (`query`, `mutation`, `subscription` or `fragment`) in the .graphql file generated a Typescript function of the same name.
+
+Each function takes an optional argument, which contains additional options. The configured document is then passed to one of the provided hooks:
+
+### Queries
+
+useQuery uses [watchQuery](https://www.apollographql.com/docs/react/api/apollo-client.html#ApolloClient.watchQuery) under the hood, so the component will re-render automatically if the queries data changes in Apollo's cache for any reason.
 
 ```tsx
-// ! TODO fix example
-import { useQuery, fetchProducts } from './graphql.generated.ts'
+import { useQuery, getAllTodos } from './src/graphql'
 
-function ProductListScreen() {
-  // This hook will automatically re-render this component when new data is available,
-  // which may happen after the initial load, when we use a refetchQuery or
-  // when we update the Apollo cache through some other means.
-  const [result, query] = useQuery(fetchProducts())
+function TodoList() {
+  const queryResult = useQuery(getAllTodos({ fetchPolicy: 'cache-first' }))
 
-  if (result.loading) return <LoadingIndicator />
-  if (result.error) throw 'Deal with it.'
+  // get access to loading and error state of the query
+  if (queryResult.loading) return <p>Loading...</p>
+  if (queryResult.error) return <p>Error</p>
 
-  // Look ma, typesafe queries!
+  // data is null during loading and in case of error, but can be expected to be non-null otherwise
+  const todoItems = queryResult.data!.todoItems
+
+  // the compiler knows about which fields are available on todoItems
   return (
     <ul>
-      <li key={product.id}>
-        {product.name} for {product.price}
-      </li>
+      {todoItems.map(item => (
+        <li key={item.id}>{item.title}</li>
+      ))}
     </ul>
   )
 }
 ```
 
-Each operation we defined in our .gql file corresponds to a function in the generated Typescript file. So it is important to give a proper name to every operation.  
-You may pass an object with additional options ([queries](https://www.apollographql.com/docs/react/api/apollo-client.html#ApolloClient.watchQuery), [mutations](https://www.apollographql.com/docs/react/api/apollo-client.html#ApolloClient.mutate)) to the function, like in this example:
+### Mutations
+
+useMutation creates a function which executes the configured mutation and returns the result as a Promise.
 
 ```tsx
-import { useMutation, login } from './graphql.generated.ts'
+import { useMutation, createTodo } from './src/graphql'
 
-function LoginButton() {
+function AddTodoButton() {
   const mutate = useMutation(
-    login({
-      // define options here
-      refetchQueries: ['fetchAuthenticatedUser'],
+    createTodo({
+      // options can be passed directly during configuration, like with useQuery.
+      // alternatively, you can pass the options object later when calling the mutate function
+      variables: {
+        todoItem: { title: 'Finish this button component...' },
+      },
     })
   )
 
-  async function onClick() {
-    // For mutations, you may also specify options when executing the mutate function.
-    // They will be merged with the options from above.
-    const result = await mutate({
-      variables: { email: 'steve.jobs@apple.com', password: 'hunter2' },
-    })
-    if (!result.login) {
-      console.log('Wrong password!')
-    } else {
-      console.log(result.login.token)
-    }
-  }
-
-  return <button onClick={onClick}>let me in</button>
+  return (
+    <button
+      onClick={() => {
+        mutate().then(console.log)
+      }}
+    >
+      Click me!
+    </button>
+  )
 }
 ```
 
-## Todos
+### Subscriptions
 
-- Named Interfaces for Data and Variables
-- Input Scalar Types
-- Custom ID Type
-- return FetchResult instead of [data,error]
+Subscriptions require additional work when setting up ApolloClient, see [here](https://www.apollographql.com/docs/react/advanced/subscriptions.html#subscriptions-client).
+
+```tsx
+import { useSubscription, subscribeTodos } from './src/graphql'
+
+function TodoItemTicker() {
+  const sub = useSubscription(subscribeTodos())
+
+  // If we did not receive a subscription event yet, the value is null
+  if (sub == null) return null
+
+  return <p>Latest Todo: {sub.newTodoItem.title}</p>
+}
+```
+
+Often, you want to send a query to get some data, and create a subscription to be called back whenever the data changes on server. You can use this helper function to do both in one:
+
+```tsx
+import { useQuery, getAllTodos } from './src/graphql'
+
+function TodoList() {
+  const queryResult = useQueryWithSubscription(
+    getAllTodos(), // the initial query
+    subscribeTodos(), // the subscription
+    (queryData, subData) => ({
+      // Update the query data here with the latest data from the subscription
+      todoItems: [...queryData.todoItems, subData.newTodoItem],
+    })
+  )
+
+  // loading and error state are taken only from the query
+  if (queryResult.loading) return <p>Loading...</p>
+  if (queryResult.error) return <p>Error</p>
+
+  const todoItems = queryResult.data!.todoItems
+
+  return (
+    <ul>
+      {todoItems.map(item => (
+        <li key={item.id}>{item.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+## Types
+
+A key feature of GraphQL is the possibility to fetch as many or as few properties of an object as is needed for a particular view. For this reason, it is difficult to assume a specific interface for any GraphQL type.
+
+This library generates named interfaces for every selection of fields in a query. For example, given the above mutation:
+
+```graphql
+mutation createTodo($todoItem: TodoItemInput!) {
+  createTodoItem(todoItem: $todoItem) {
+    id
+  }
+}
+```
+
+the following types are generated:
+
+```ts
+// TodoItemInput
+type TodoItemInput = {
+  title: TodoItemInput_title
+  description?: Nullable<TodoItemInput_description>
+  dueDate?: Nullable<TodoItemInput_dueDate>
+}
+type TodoItemInput_title = string
+type TodoItemInput_description = string
+type TodoItemInput_dueDate = any
+
+// createTodo() mutation
+type createTodo_variables = {
+  todoItem: createTodo_variables_todoItem
+}
+type createTodo_variables_todoItem = TodoItemInput
+type createTodo_data = {
+  createTodoItem: createTodo_data_createTodoItem
+}
+type createTodo_data_createTodoItem = { id: createTodo_data_createTodoItem_id }
+type createTodo_data_createTodoItem_id = string
+```
+
+So it is easy to specify the type of the variables or result (data) of a query or mutation, or any subselection of those.
+
+If you want to re-use a type, I suggest to use named fragments, which create types of the same name as the fragment:
+
+```graphql
+fragment TodoParts on TodoItem {
+  id
+  title
+  isDone
+}
+```
+
+produces:
+
+```ts
+type TodoParts = {
+  id: TodoParts_id
+  title: TodoParts_title
+  isDone: TodoParts_isDone
+}
+type TodoParts_id = string
+type TodoParts_title = string
+type TodoParts_isDone = boolean
+```
+
+## Generator Options
+
+You can specify some options in the codegen.yml:
+
+```yml
+schema: http://localhost:4000
+documents: ./src/graphql/*.graphql
+overwrite: true
+generates:
+  ./src/graphql/index.ts:
+    - apollo-hooks-codegen
+      # Options here:
+      idType: any  # The Typescript type generated for GraphQL's "ID" type (defaults to string)
+      scalarTypes: # The Typescript types generated for custom scalar types in the GraphQL schema (defaults to any)
+        JSON: string
+        UTCDate: unknown
+
+```
+
+## Future Work
+
 - Suspense support
-- Subscriptions
 - Default values
-- Input Enum Types
-- Better Tests

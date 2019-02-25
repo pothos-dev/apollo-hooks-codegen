@@ -26,10 +26,9 @@ function MyComponent() {
   const queryResult = useQueryWithSubscription(
     getAllTodos(),
     subscribeTodos(),
-    (queryData, sub) => {
-      const newTodoItem = sub.subscribeTodoItems
+    (queryData, subData) => {
       return {
-        todoItems: [...queryData.todoItems, newTodoItem],
+        todoItems: [...queryData.todoItems, subData.newTodoItem],
       }
     }
   )

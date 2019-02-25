@@ -11,7 +11,6 @@ import ApolloClient, {
   WatchQueryOptions,
   SubscriptionOptions,
   ApolloQueryResult,
-  ApolloCurrentResult,
 } from 'apollo-client'
 import { FetchResult, Observable } from 'apollo-link'
 import { DocumentNode } from 'graphql'
@@ -75,7 +74,7 @@ export const subscribeTodos = subscription<
   subscribeTodos_data
 >(gql`
   subscription subscribeTodos {
-    subscribeTodoItems {
+    newTodoItem: subscribeTodoItems {
       ...TodoParts
     }
   }
@@ -83,9 +82,9 @@ export const subscribeTodos = subscription<
 `)
 export type subscribeTodos_variables = {}
 export type subscribeTodos_data = {
-  subscribeTodoItems: subscribeTodos_data_subscribeTodoItems
+  newTodoItem: subscribeTodos_data_newTodoItem
 }
-export type subscribeTodos_data_subscribeTodoItems = TodoParts & {}
+export type subscribeTodos_data_newTodoItem = TodoParts & {}
 
 export const createTodo = mutation<createTodo_variables, createTodo_data>(gql`
   mutation createTodo($todoItem: TodoItemInput!) {
