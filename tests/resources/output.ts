@@ -392,7 +392,7 @@ export function useMutation<D, V>(
 }
 
 export function useSubscription<D>(
-  configuredSubscription: (client: ApolloClient<any>) => Observable<D>
+  configuredSubscription: (client: ApolloClient<any>) => Observable<{ data: D }>
 ): Nullable<D> {
   const { apolloClient } = useContext(apolloContext)
   if (!apolloClient) throw 'No ApolloClient provided'
@@ -401,11 +401,28 @@ export function useSubscription<D>(
 
   const [result, setResult] = useState<Nullable<D>>(null)
   useEffect(() => {
-    const subscription = observable.current.subscribe(setResult)
+    const subscription = observable.current.subscribe(event =>
+      setResult(event.data)
+    )
     return () => subscription.unsubscribe()
   })
-
   return result
+}
+
+export function useQueryWithSubscription<QD, SD, T>(
+  queryResult: Nullable<ApolloQueryResult<QD>>,
+  subscriptionData: Nullable<SD>,
+  extractDataFromQuery: (queryData: QD) => T,
+  addDataFromSubscription: (current: T, subscriptionData: SD) => T
+) {
+  const ref = useRef<T | null>(null)
+  if (ref.current == null && queryResult != null) {
+    ref.current = extractDataFromQuery(queryResult.data)
+  }
+  if (ref.current != null && subscriptionData != null) {
+    ref.current = addDataFromSubscription(ref.current, subscriptionData)
+  }
+  return ref.current
 }
 
 // Converts a gql-snippet into a user-callable function that takes options,
@@ -433,7 +450,7 @@ function query<V, D>(doc: DocumentNode) {
 function subscription<V, D>(doc: DocumentNode) {
   return function configureSubscription(opts: SubscriptionOpts<V> = {}) {
     return function executeSubscription(client: ApolloClient<any>) {
-      return client.subscribe<D, V>({ query: doc, ...opts })
+      return client.subscribe<{ data: D }, V>({ query: doc, ...opts })
     }
   }
 }
