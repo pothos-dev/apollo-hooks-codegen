@@ -8,7 +8,7 @@
 // import {
 //   ApolloHooksProvider,
 //   fetchPersons,
-//   useApolloQuery,
+//   useQuery,
 // } from './generated/graphql-demo-output'
 // import { render } from 'react-testing-library'
 
@@ -31,7 +31,7 @@
 // }
 
 // function TestComponent(props: { resolveLoading(): void }) {
-//   const [data, error] = useApolloQuery(fetchPersons())
+//   const [data, error] = useQuery(fetchPersons())
 
 //   if (error) throw error
 //   if (!data) return <div>Loading</div>

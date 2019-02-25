@@ -1,11 +1,11 @@
 import React, { useRef, useState } from 'react'
 import {
   ApolloHooksProvider,
-  useApolloQuery,
+  useQuery,
   getAllTodos,
-  useApolloMutation,
+  useMutation,
   createTodo,
-  useApolloSubscription,
+  useSubscription,
   subscribeTodos,
 } from './queries'
 import { apolloClient } from './apollo-client'
@@ -21,7 +21,7 @@ export default function App() {
 }
 
 function MyComponent() {
-  const mutate = useApolloMutation(createTodo())
+  const mutate = useMutation(createTodo())
   const todoItems = useTodoItems()
   if (!todoItems) return null
 
@@ -38,8 +38,8 @@ function MyComponent() {
 
 function useTodoItems() {
   const [todoItems, setTodoItems] = useState(null as TodoItem[] | null)
-  const query = useApolloQuery(getAllTodos())
-  const subscription = useApolloSubscription(subscribeTodos())
+  const query = useQuery(getAllTodos())
+  const subscription = useSubscription(subscribeTodos())
 
   if (todoItems == null && query) {
     setTodoItems([...query.data.todoItems])

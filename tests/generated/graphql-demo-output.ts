@@ -72,7 +72,7 @@ export function ApolloHooksProvider({
 }
 
 // Converts a gql-snippet into a user-callable function that takes options,
-// which can then be passed to useApolloQuery to execute the query.
+// which can then be passed to useQuery to execute the query.
 function defineQuery<V, D>(doc: DocumentNode) {
   return function configureQuery(opts: QueryOpts<V> = {}) {
     return function executeQuery(client: ApolloClient<any>) {
@@ -86,7 +86,7 @@ function defineQuery<V, D>(doc: DocumentNode) {
 // The React Hooks rules apply - this function must be called unconditionally
 // within a functional React Component and will rerender the component whenever
 // the query result changes.
-export function useApolloQuery<D, V>(
+export function useQuery<D, V>(
   configuredQuery: (client: ApolloClient<any>) => ObservableQuery<D, V>
 ): [ApolloCurrentResult<D>, ObservableQuery<D, V>] {
   const { apolloClient } = useContext(apolloContext)
@@ -104,7 +104,7 @@ export function useApolloQuery<D, V>(
 }
 
 // Converts a gql-snippet into a user-callable function that takes options,
-// which can then be passed to useApolloMutation to provide the mutate function.
+// which can then be passed to useMutation to provide the mutate function.
 function defineMutation<V, D>(mutation: DocumentNode) {
   return function configureMutation(opts: MutateOpts<D, V> = {}) {
     return function loadMutation(client: ApolloClient<any>) {
@@ -119,7 +119,7 @@ function defineMutation<V, D>(mutation: DocumentNode) {
 // the same name as the mutation operation.
 // The React Hooks rules apply - this function must be called unconditionally
 // within a functional React Component.
-export function useApolloMutation<D, V>(
+export function useMutation<D, V>(
   configuredMutation: (
     client: ApolloClient<any>
   ) => (opts?: MutateOpts<D, V>) => Promise<FetchResult<D>>

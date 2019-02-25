@@ -91,13 +91,13 @@ Now we're ready to use the hooks that we've already generated.
 
 ```tsx
 // ! TODO fix example
-import { useApolloQuery, fetchProducts } from './graphql.generated.ts'
+import { useQuery, fetchProducts } from './graphql.generated.ts'
 
 function ProductListScreen() {
   // This hook will automatically re-render this component when new data is available,
   // which may happen after the initial load, when we use a refetchQuery or
   // when we update the Apollo cache through some other means.
-  const [result, query] = useApolloQuery(fetchProducts())
+  const [result, query] = useQuery(fetchProducts())
 
   if (result.loading) return <LoadingIndicator />
   if (result.error) throw 'Deal with it.'
@@ -117,10 +117,10 @@ Each operation we defined in our .gql file corresponds to a function in the gene
 You may pass an object with additional options ([queries](https://www.apollographql.com/docs/react/api/apollo-client.html#ApolloClient.watchQuery), [mutations](https://www.apollographql.com/docs/react/api/apollo-client.html#ApolloClient.mutate)) to the function, like in this example:
 
 ```tsx
-import { useApolloMutation, login } from './graphql.generated.ts'
+import { useMutation, login } from './graphql.generated.ts'
 
 function LoginButton() {
-  const mutate = useApolloMutation(
+  const mutate = useMutation(
     login({
       // define options here
       refetchQueries: ['fetchAuthenticatedUser'],
