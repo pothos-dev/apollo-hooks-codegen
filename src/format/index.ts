@@ -1,6 +1,6 @@
 import { PluginIR } from '../types'
 import { disclaimer, imports, boilerplate } from './Boilerplate'
-import { formatInputTypes } from './InputTypes'
+import { formatInputTypes } from './InputType'
 import { formatFile } from './File'
 
 export function format(plugin: PluginIR): string {

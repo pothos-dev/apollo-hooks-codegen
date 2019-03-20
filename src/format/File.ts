@@ -1,6 +1,6 @@
 import { FileIR } from '../types'
-import { formatFragments } from './Fragments'
-import { formatOperation } from './Operations'
+import { formatFragments } from './Fragment'
+import { formatOperation } from './Operation'
 
 export function formatFile(file: FileIR): string {
   return (
