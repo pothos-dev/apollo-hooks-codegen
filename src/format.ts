@@ -89,7 +89,14 @@ function typeName(type: TypeIR): string {
 function formatType(type: TypeIR): string {
   const leftSide = 'export type ' + typeName(type)
   const fragments = type.fragments ? type.fragments.join(' & ') + ' & ' : ''
-  const rightSide = type.scalar || formatInterface(type.fields)
+
+  let rightSide = 'unknown'
+  if (type.scalar) {
+    rightSide = type.scalar
+  }
+  if (type.fields) {
+    rightSide = formatInterface(type.fields)
+  }
 
   let output = leftSide + ' = ' + fragments + rightSide
 

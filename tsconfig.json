@@ -1,14 +1,18 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "module": "commonjs",
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "dist",
+
     "target": "es5",
+    "module": "commonjs",
     "jsx": "react",
+
     "lib": ["esnext", "dom"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "declaration": true,
-    "noImplicitAny": true
+
+    "strict": true
   },
   "include": ["./src/**/*", "./tests/**/*", "dist/index.js", "index.js"],
   "exclude": ["./tests"]

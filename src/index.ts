@@ -9,6 +9,11 @@ export function plugin(
   documents: DocumentFile[],
   config: PluginConfig
 ): string {
-  const pluginIR = transform(schema, documents, config)
-  return format(pluginIR)
+  try {
+    const pluginIR = transform(schema, documents, config)
+    return format(pluginIR)
+  } catch (e) {
+    console.log(e)
+    return ''
+  }
 }

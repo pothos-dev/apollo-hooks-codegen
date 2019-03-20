@@ -142,6 +142,24 @@ export type testNesting_data_nestedObject_nested_scalar = number
 export type testNesting_data_nestedObject_scalar = boolean
 export type testNesting_data_nestedObject_list = string
 
+export const testUnion = query<testUnion_variables, testUnion_data>(gql`
+  query testUnion {
+    union {
+      ... on Tomato {
+        id
+      }
+      ... on Potato {
+        id
+      }
+    }
+  }
+`)
+export type testUnion_variables = {}
+export type testUnion_data = {
+  union?: Nullable<testUnion_data_union>
+}
+export type testUnion_data_union = unknown
+
 export const testMethods = query<testMethods_variables, testMethods_data>(gql`
   query testMethods(
     $reqParam: String!

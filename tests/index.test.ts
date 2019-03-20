@@ -21,7 +21,7 @@ test('basic test', async () => {
     pluginLoader,
   })
 
-  const fileContent = output.find(it => it.filename == 'output.ts').content
+  const fileContent = output.find(it => it.filename == 'output.ts')!.content
   expect(fileContent).toMatchSnapshot()
 })
 
