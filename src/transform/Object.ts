@@ -61,7 +61,11 @@ function getTypeInfoFromField(
   } else if (isEnumType(baseType)) {
     scalar = transformEnumType(baseType)
   } else if (isUnionType(baseType)) {
-    union = transformUnionType(baseType)
+    union = transformUnionType(
+      [...namespace, name],
+      node.selectionSet!,
+      baseType
+    )
   }
 
   if (!fields && !scalar && !union)
