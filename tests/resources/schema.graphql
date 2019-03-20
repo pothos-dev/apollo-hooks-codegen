@@ -19,6 +19,9 @@ type Query {
   # Test lists
   listOfNestedObject: [ObjectType]
 
+  # Test unions
+  union: UnionType
+
   # Test methods
   method(
     requiredParam: String!
@@ -66,6 +69,16 @@ type ObjectType {
 type NestedObjectType {
   scalar: Int
 }
+
+type Tomato {
+  id: ID
+}
+
+type Potato {
+  id: ID
+}
+
+union UnionType = Tomato | Potato
 
 input InputType {
   recursive: InputType

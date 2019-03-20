@@ -29,6 +29,17 @@ query testNesting {
   }
 }
 
+query testUnion {
+  union {
+    ... on Tomato {
+      id
+    }
+    ... on Potato {
+      id
+    }
+  }
+}
+
 query testMethods(
   $reqParam: String!
   $optParam: Float!
