@@ -33,6 +33,8 @@ import {
   FragmentDefinitionNode,
   FragmentSpreadNode,
   ExecutableDefinitionNode,
+  isUnionType,
+  GraphQLUnionType,
 } from 'graphql'
 import {
   TypeIR,
@@ -327,7 +329,7 @@ export function transform(
 
     // Todo add fragments
 
-    let fields, scalar, fragments
+    let fields, scalar, fragments, union
     if (isObjectType(baseType)) {
       const fieldsAndFragments = transformObject(
         [...namespace, name],
@@ -340,12 +342,14 @@ export function transform(
       scalar = transformScalarType(baseType)
     } else if (isEnumType(baseType)) {
       scalar = transformEnumType(baseType)
+    } else if (isUnionType(baseType)) {
+      union = transformUnionType(baseType)
     }
 
-    if (!fields && !scalar)
-      throw 'Expected Field to contain either scalar or subfields'
+    if (!fields && !scalar && !union)
+      throw 'Expected field to be either scalar, object or union'
 
-    return { namespace, name, modifiers, fields, scalar, fragments }
+    return { namespace, name, modifiers, fields, scalar, fragments, union }
 
     // Strip all combination of Nullable and Array modifiers from the type,
     // which yields list of modifiers and the base type
@@ -375,8 +379,14 @@ export function transform(
           return unwrap(type.ofType, true)
         }
 
-        if (isScalarType(type) || isEnumType(type) || isObjectType(type))
+        if (
+          isScalarType(type) ||
+          isEnumType(type) ||
+          isObjectType(type) ||
+          isUnionType(type)
+        ) {
           return type
+        }
 
         throw 'unhandled GraphQLOutputType in unwrap'
       }
@@ -403,14 +413,18 @@ export function transform(
     }
   }
 
-  function transformEnumType(type: GraphQLEnumType) {
+  function transformEnumType(type: GraphQLEnumType): string {
     return type
       .getValues()
       .map(value => "'" + value.name + "'")
       .join(' | ')
   }
 
-  function getCustomScalarName(schemaName: string) {
+  function transformUnionType(type: GraphQLUnionType): TypeIR[] {
+    throw 'TODO transformUnionType'
+  }
+
+  function getCustomScalarName(schemaName: string): string {
     const customName = config.scalarTypes && config.scalarTypes[schemaName]
     return customName || 'any'
   }

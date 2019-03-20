@@ -33,6 +33,7 @@ export interface TypeIR {
   fields?: TypeIR[] // mutually exclusive with scalar
   scalar?: string // mutually exclusive with fields
   fragments?: string[]
+  union?: TypeIR[]
 }
 
 export interface FragmentIR {
