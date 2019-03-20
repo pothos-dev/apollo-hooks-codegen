@@ -4,11 +4,11 @@ import { formatType } from './Type'
 export function formatInputTypes(inputTypes: TypeIR[]): string {
   return (
     `
-    /*
-     * GraphQL Input Types
-     */
+/*
+ * GraphQL Input Types
+ */
 
 
-    ` + inputTypes.map(formatType).join('\n')
+` + inputTypes.map(formatType).join('\n')
   )
 }
