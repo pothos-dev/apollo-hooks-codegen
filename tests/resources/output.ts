@@ -11,6 +11,7 @@ import ApolloClient, {
   WatchQueryOptions,
   SubscriptionOptions,
   ApolloQueryResult,
+  ApolloCurrentResult,
 } from 'apollo-client'
 import { FetchResult, Observable } from 'apollo-link'
 import { DocumentNode } from 'graphql'
@@ -30,18 +31,14 @@ export type InputType_recursive = InputType
 export type InputType_nested = NestedInputType
 export type InputType_scalar = boolean
 export type InputType_list = string
-export type NestedInputType = {
-  scalar?: Nullable<NestedInputType_scalar>
-}
+export type NestedInputType = { scalar?: Nullable<NestedInputType_scalar> }
 export type NestedInputType_scalar = number
 
 /*
  * Fragments from ./tests/resources/documents.graphql
  */
 
-export type ObjectTypeFields = {
-  scalar?: Nullable<ObjectTypeFields_scalar>
-}
+export type ObjectTypeFields = { scalar?: Nullable<ObjectTypeFields_scalar> }
 
 export type ObjectTypeFields_scalar = boolean
 
@@ -68,6 +65,7 @@ export const testScalars = query<testScalars_variables, testScalars_data>(gql`
   }
 `)
 export type testScalars_variables = {}
+
 export type testScalars_data = {
   scalarString?: Nullable<testScalars_data_scalarString>
   scalarInt?: Nullable<testScalars_data_scalarInt>
@@ -95,6 +93,7 @@ export const testNullability = query<
   }
 `)
 export type testNullability_variables = {}
+
 export type testNullability_data = {
   nullableBoolean?: Nullable<testNullability_data_nullableBoolean>
   nonNullableBoolean: testNullability_data_nonNullableBoolean
@@ -119,6 +118,7 @@ export const testNesting = query<testNesting_variables, testNesting_data>(gql`
   }
 `)
 export type testNesting_variables = {}
+
 export type testNesting_data = {
   nestedObject?: Nullable<testNesting_data_nestedObject>
 }
@@ -155,9 +155,8 @@ export const testUnion = query<testUnion_variables, testUnion_data>(gql`
   }
 `)
 export type testUnion_variables = {}
-export type testUnion_data = {
-  union?: Nullable<testUnion_data_union>
-}
+
+export type testUnion_data = { union?: Nullable<testUnion_data_union> }
 export type testUnion_data_union = unknown
 
 export const testMethods = query<testMethods_variables, testMethods_data>(gql`
@@ -206,6 +205,7 @@ export const testScalarsMutation = mutation<
   }
 `)
 export type testScalarsMutation_variables = {}
+
 export type testScalarsMutation_data = {
   scalarString?: Nullable<testScalarsMutation_data_scalarString>
   scalarInt?: Nullable<testScalarsMutation_data_scalarInt>
@@ -233,6 +233,7 @@ export const testNullabilityMutation = mutation<
   }
 `)
 export type testNullabilityMutation_variables = {}
+
 export type testNullabilityMutation_data = {
   nullableBoolean?: Nullable<testNullabilityMutation_data_nullableBoolean>
   nonNullableBoolean: testNullabilityMutation_data_nonNullableBoolean
@@ -260,6 +261,7 @@ export const testNestingMutation = mutation<
   }
 `)
 export type testNestingMutation_variables = {}
+
 export type testNestingMutation_data = {
   nestedObject?: Nullable<testNestingMutation_data_nestedObject>
 }
@@ -332,6 +334,7 @@ export const testFragments = query<
   ${_gql_ObjectTypeFields}
 `)
 export type testFragments_variables = {}
+
 export type testFragments_data = {
   nestedObject?: Nullable<testFragments_data_nestedObject>
 }
