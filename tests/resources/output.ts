@@ -179,6 +179,7 @@ export type testUnion_data_union =
   | testUnion_data_union_Tomato
   | testUnion_data_union_Potato
 export type testUnion_data_union_Tomato = {
+  __typename?: 'Tomato'
   id?: Nullable<testUnion_data_union_Tomato_id>
   color?: Nullable<testUnion_data_union_Tomato_color>
 }
@@ -186,6 +187,7 @@ export type testUnion_data_union_Tomato = {
 export type testUnion_data_union_Tomato_id = string
 export type testUnion_data_union_Tomato_color = string
 export type testUnion_data_union_Potato = {
+  __typename?: 'Potato'
   id?: Nullable<testUnion_data_union_Potato_id>
   origin?: Nullable<testUnion_data_union_Potato_origin>
 }

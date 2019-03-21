@@ -23,6 +23,7 @@ export function transformUnionType(
     )
 
     unionTypesIR.push({
+      typename: objectTypeName,
       name: objectTypeName,
       fields,
       fragments,
