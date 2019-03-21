@@ -2,7 +2,18 @@ import { TypeIR } from '../types'
 import { typeName } from './Type'
 
 export function formatInterfaceType(type: TypeIR) {
-  return formatFragments(type.fragments) + formatFields(type.fields)
+  return (
+    formatFragments(type.fragments) +
+    '{\n' +
+    (type.typename ? `__typename?: '${type.typename}'\n` : '') +
+    type.fields!.map(formatField).join('') +
+    '}\n'
+  )
+}
+
+function formatFragments(fragments: TypeIR['fragments']) {
+  if (!fragments || fragments.length == 0) return ''
+  return fragments.join('&') + '&'
 }
 
 export function formatFields(fields?: TypeIR[]) {
@@ -20,9 +31,4 @@ function formatField(field: TypeIR) {
     }
   }
   return field.name + (optional ? '?: ' : ': ') + type + '\n'
-}
-
-function formatFragments(fragments: TypeIR['fragments']) {
-  if (!fragments) return ''
-  return fragments.join('&') + '&'
 }

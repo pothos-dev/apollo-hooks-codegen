@@ -30,6 +30,7 @@ export interface TypeIR {
   namespace: string[] // list of nested modules containing the type
   name: string
   modifiers?: Modifier[]
+  typename?: string
   fields?: TypeIR[] // mutually exclusive with scalar
   scalar?: string // mutually exclusive with fields
   fragments?: string[]

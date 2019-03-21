@@ -35,13 +35,13 @@ function extractData(
   node: OperationDefinitionNode
 ): TypeIR {
   const name = 'data'
-  const { fields, fragments } = transformObject(
+  const { fields, fragments, typename } = transformObject(
     [...namespace, 'data'],
     node.selectionSet,
     getSchemaRootObject(node.operation)
   )
 
-  return { namespace, name, fields, fragments }
+  return { namespace, typename, name, fields, fragments }
 }
 
 function getSchemaRootObject(operation: OperationTypeNode) {

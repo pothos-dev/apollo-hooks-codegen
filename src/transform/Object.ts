@@ -21,8 +21,9 @@ export function transformObject(
   namespace: string[],
   selectionSet: SelectionSetNode,
   object: GraphQLObjectType
-): { fields: TypeIR[]; fragments: string[] } {
+): { typename: string; fields: TypeIR[]; fragments: string[] } {
   return {
+    typename: object.name,
     fields: selectionSet.selections
       .filter(it => it.kind == 'Field')
       .map(it => getTypeInfoFromField(namespace, it as FieldNode, object)),
@@ -45,8 +46,9 @@ function getTypeInfoFromField(
 
   const { modifiers, baseType } = getModifiersAndBaseType(schemaType)
 
-  let fields, scalar, fragments, union
+  let fields, scalar, fragments, union, typename
   if (isObjectType(baseType)) {
+    typename = baseType.name
     const fieldsAndFragments = transformObject(
       [...namespace, name],
       node.selectionSet!,
@@ -69,7 +71,16 @@ function getTypeInfoFromField(
   if (!fields && !scalar && !union)
     throw 'Expected field to be either scalar, object or union'
 
-  return { namespace, name, modifiers, fields, scalar, fragments, union }
+  return {
+    typename,
+    namespace,
+    name,
+    modifiers,
+    fields,
+    scalar,
+    fragments,
+    union,
+  }
 
   // Strip all combination of Nullable and Array modifiers from the type,
   // which yields list of modifiers and the base type
