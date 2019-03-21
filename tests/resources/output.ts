@@ -22,7 +22,6 @@ import gql from 'graphql-tag'
  */
 
 export type InputType = {
-  __typename?: 'InputType'
   recursive?: Nullable<InputType_recursive>
   nested?: Nullable<InputType_nested>
   scalar?: Nullable<InputType_scalar>
@@ -35,7 +34,6 @@ export type InputType_scalar = boolean
 export type InputType_list = string
 
 export type NestedInputType = {
-  __typename?: 'NestedInputType'
   scalar?: Nullable<NestedInputType_scalar>
 }
 

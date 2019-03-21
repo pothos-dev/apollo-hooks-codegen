@@ -94,7 +94,6 @@ export function getVariableType(
     // we process its field (if it is a recursive type)
     const fields: TypeIR[] = []
     InputTypes().push({
-      typename: schemaName,
       namespace: [],
       name: schemaName,
       fields,
