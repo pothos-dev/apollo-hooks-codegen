@@ -1,24 +1,26 @@
 import { FileIR } from '../types'
-import { formatFragments } from './Fragment'
+import { formatFragment } from './Fragment'
 import { formatOperation } from './Operation'
 
 export function formatFile(file: FileIR): string {
-  return (
-    `
+  let output = ''
+  output += `
 /*,
  * Fragments from ${file.filePath},
  */
+`
+  for (const fragment of file.fragments) {
+    output += formatFragment(fragment)
+  }
 
-
-` +
-    file.fragments.map(formatFragments).join('\n') +
-    `
+  output += `
 /*,
  * Operations from ${file.filePath},
  */
+`
+  for (const operation of file.operations) {
+    output += formatOperation(operation)
+  }
 
-
-` +
-    file.operations.map(formatOperation).join('\n')
-  )
+  return output
 }

@@ -1,19 +1,13 @@
 import { FragmentIR } from '../types'
-import { formatInterface, formatType } from './Type'
+import { formatFields } from './Interface'
+import { formatType } from './Type'
 
-export function formatFragments(fragmentType: FragmentIR): string {
-  return [
-    'export type ' +
-      fragmentType.name +
-      ' = ' +
-      formatInterface(fragmentType.fields),
-    '',
-    ...fragmentType.fields.map(formatType),
-    '',
-    'const _gql_' +
-      fragmentType.name +
-      ' = gql`' +
-      fragmentType.gqlExpression +
-      '`',
-  ].join('\n')
+export function formatFragment(fragmentType: FragmentIR): string {
+  const { name, fields, gqlExpression } = fragmentType
+  let output = `export type ${name} = ${formatFields(fields)}\n`
+  for (const field of fragmentType.fields) {
+    output += formatType(field)
+  }
+  output += `const _gql_${name} = gql\`${gqlExpression}\`\n`
+  return output
 }

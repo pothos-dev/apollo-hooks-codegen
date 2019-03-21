@@ -22,6 +22,7 @@ export function formatOperation(operation: OperationIR): string {
     '\n' +
     formatType(variables) +
     '\n' +
-    formatType(data)
+    formatType(data) +
+    '\n'
   )
 }

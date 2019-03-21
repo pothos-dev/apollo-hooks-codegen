@@ -27,30 +27,31 @@ export type InputType = {
   scalar?: Nullable<InputType_scalar>
   list?: Nullable<ReadonlyArray<InputType_list>>
 }
+
 export type InputType_recursive = InputType
 export type InputType_nested = NestedInputType
 export type InputType_scalar = boolean
 export type InputType_list = string
+
 export type NestedInputType = { scalar?: Nullable<NestedInputType_scalar> }
+
 export type NestedInputType_scalar = number
 
 /*,
  * Fragments from ./tests/resources/documents.graphql,
  */
-
 export type ObjectTypeFields = { scalar?: Nullable<ObjectTypeFields_scalar> }
 
 export type ObjectTypeFields_scalar = boolean
-
 const _gql_ObjectTypeFields = gql`
   fragment ObjectTypeFields on ObjectType {
     scalar
   }
 `
+
 /*,
  * Operations from ./tests/resources/documents.graphql,
  */
-
 export const testScalars = query<testScalars_variables, testScalars_data>(gql`
   query testScalars {
     scalarString
@@ -74,6 +75,7 @@ export type testScalars_data = {
   scalarCustom?: Nullable<testScalars_data_scalarCustom>
   renamedString?: Nullable<testScalars_data_renamedString>
 }
+
 export type testScalars_data_scalarString = string
 export type testScalars_data_scalarInt = number
 export type testScalars_data_scalarFloat = number
@@ -81,6 +83,7 @@ export type testScalars_data_scalarBoolean = boolean
 export type testScalars_data_scalarID = string
 export type testScalars_data_scalarCustom = any
 export type testScalars_data_renamedString = string
+
 export const testNullability = query<
   testNullability_variables,
   testNullability_data
@@ -96,8 +99,10 @@ export type testNullability_data = {
   nullableBoolean?: Nullable<testNullability_data_nullableBoolean>
   nonNullableBoolean: testNullability_data_nonNullableBoolean
 }
+
 export type testNullability_data_nullableBoolean = boolean
 export type testNullability_data_nonNullableBoolean = boolean
+
 export const testNesting = query<testNesting_variables, testNesting_data>(gql`
   query testNesting {
     nestedObject {
@@ -119,25 +124,31 @@ export type testNesting_variables = {}
 export type testNesting_data = {
   nestedObject?: Nullable<testNesting_data_nestedObject>
 }
+
 export type testNesting_data_nestedObject = {
   recursive?: Nullable<testNesting_data_nestedObject_recursive>
   nested?: Nullable<testNesting_data_nestedObject_nested>
   scalar?: Nullable<testNesting_data_nestedObject_scalar>
   list?: Nullable<ReadonlyArray<testNesting_data_nestedObject_list>>
 }
+
 export type testNesting_data_nestedObject_recursive = {
   recursive?: Nullable<testNesting_data_nestedObject_recursive_recursive>
 }
+
 export type testNesting_data_nestedObject_recursive_recursive = {
   scalar?: Nullable<testNesting_data_nestedObject_recursive_recursive_scalar>
 }
+
 export type testNesting_data_nestedObject_recursive_recursive_scalar = boolean
 export type testNesting_data_nestedObject_nested = {
   scalar?: Nullable<testNesting_data_nestedObject_nested_scalar>
 }
+
 export type testNesting_data_nestedObject_nested_scalar = number
 export type testNesting_data_nestedObject_scalar = boolean
 export type testNesting_data_nestedObject_list = string
+
 export const testUnion = query<testUnion_variables, testUnion_data>(gql`
   query testUnion {
     union {
@@ -153,7 +164,9 @@ export const testUnion = query<testUnion_variables, testUnion_data>(gql`
 export type testUnion_variables = {}
 
 export type testUnion_data = { union?: Nullable<testUnion_data_union> }
+
 export type testUnion_data_union = unknown
+
 export const testMethods = query<testMethods_variables, testMethods_data>(gql`
   query testMethods(
     $reqParam: String!
@@ -171,18 +184,22 @@ export type testMethods_variables = {
   input?: Nullable<testMethods_variables_input>
   list2: ReadonlyArray<testMethods_variables_list2>
 }
+
 export type testMethods_variables_reqParam = string
 export type testMethods_variables_optParam = number
 export type testMethods_variables_input = InputType
 export type testMethods_variables_list2 = any
+
 export type testMethods_data = {
   method?: Nullable<testMethods_data_method>
   renamedMethod?: Nullable<
     ReadonlyArray<Nullable<testMethods_data_renamedMethod>>
   >
 }
+
 export type testMethods_data_method = any
 export type testMethods_data_renamedMethod = any
+
 export const testScalarsMutation = mutation<
   testScalarsMutation_variables,
   testScalarsMutation_data
@@ -209,6 +226,7 @@ export type testScalarsMutation_data = {
   scalarCustom?: Nullable<testScalarsMutation_data_scalarCustom>
   renamedString?: Nullable<testScalarsMutation_data_renamedString>
 }
+
 export type testScalarsMutation_data_scalarString = string
 export type testScalarsMutation_data_scalarInt = number
 export type testScalarsMutation_data_scalarFloat = number
@@ -216,6 +234,7 @@ export type testScalarsMutation_data_scalarBoolean = boolean
 export type testScalarsMutation_data_scalarID = string
 export type testScalarsMutation_data_scalarCustom = any
 export type testScalarsMutation_data_renamedString = string
+
 export const testNullabilityMutation = mutation<
   testNullabilityMutation_variables,
   testNullabilityMutation_data
@@ -231,8 +250,10 @@ export type testNullabilityMutation_data = {
   nullableBoolean?: Nullable<testNullabilityMutation_data_nullableBoolean>
   nonNullableBoolean: testNullabilityMutation_data_nonNullableBoolean
 }
+
 export type testNullabilityMutation_data_nullableBoolean = boolean
 export type testNullabilityMutation_data_nonNullableBoolean = boolean
+
 export const testNestingMutation = mutation<
   testNestingMutation_variables,
   testNestingMutation_data
@@ -257,29 +278,35 @@ export type testNestingMutation_variables = {}
 export type testNestingMutation_data = {
   nestedObject?: Nullable<testNestingMutation_data_nestedObject>
 }
+
 export type testNestingMutation_data_nestedObject = {
   recursive?: Nullable<testNestingMutation_data_nestedObject_recursive>
   nested?: Nullable<testNestingMutation_data_nestedObject_nested>
   scalar?: Nullable<testNestingMutation_data_nestedObject_scalar>
   list?: Nullable<ReadonlyArray<testNestingMutation_data_nestedObject_list>>
 }
+
 export type testNestingMutation_data_nestedObject_recursive = {
   recursive?: Nullable<
     testNestingMutation_data_nestedObject_recursive_recursive
   >
 }
+
 export type testNestingMutation_data_nestedObject_recursive_recursive = {
   scalar?: Nullable<
     testNestingMutation_data_nestedObject_recursive_recursive_scalar
   >
 }
+
 export type testNestingMutation_data_nestedObject_recursive_recursive_scalar = boolean
 export type testNestingMutation_data_nestedObject_nested = {
   scalar?: Nullable<testNestingMutation_data_nestedObject_nested_scalar>
 }
+
 export type testNestingMutation_data_nestedObject_nested_scalar = number
 export type testNestingMutation_data_nestedObject_scalar = boolean
 export type testNestingMutation_data_nestedObject_list = string
+
 export const testMethodsMutation = mutation<
   testMethodsMutation_variables,
   testMethodsMutation_data
@@ -300,18 +327,22 @@ export type testMethodsMutation_variables = {
   input?: Nullable<testMethodsMutation_variables_input>
   list2: ReadonlyArray<testMethodsMutation_variables_list2>
 }
+
 export type testMethodsMutation_variables_reqParam = string
 export type testMethodsMutation_variables_optParam = number
 export type testMethodsMutation_variables_input = InputType
 export type testMethodsMutation_variables_list2 = any
+
 export type testMethodsMutation_data = {
   method?: Nullable<testMethodsMutation_data_method>
   renamedMethod?: Nullable<
     ReadonlyArray<Nullable<testMethodsMutation_data_renamedMethod>>
   >
 }
+
 export type testMethodsMutation_data_method = any
 export type testMethodsMutation_data_renamedMethod = any
+
 export const testFragments = query<
   testFragments_variables,
   testFragments_data
@@ -328,6 +359,7 @@ export type testFragments_variables = {}
 export type testFragments_data = {
   nestedObject?: Nullable<testFragments_data_nestedObject>
 }
+
 export type testFragments_data_nestedObject = ObjectTypeFields & {}
 
 /*
