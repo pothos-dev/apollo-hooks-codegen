@@ -17,7 +17,7 @@ export function transformUnionType(
 
     const objectType = unionType.getTypes().find(t => t.name == objectTypeName)!
     const { fields, fragments } = transformObject(
-      namespace,
+      [...namespace, objectTypeName],
       selection.selectionSet,
       objectType
     )

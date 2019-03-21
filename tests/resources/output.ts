@@ -165,7 +165,19 @@ export type testUnion_variables = {}
 
 export type testUnion_data = { union?: Nullable<testUnion_data_union> }
 
-export type testUnion_data_union = unknown
+export type testUnion_data_union =
+  | testUnion_data_union_Tomato
+  | testUnion_data_union_Potato
+export type testUnion_data_union_Tomato = {
+  id?: Nullable<testUnion_data_union_Tomato_id>
+}
+
+export type testUnion_data_union_Tomato_id = string
+export type testUnion_data_union_Potato = {
+  id?: Nullable<testUnion_data_union_Potato_id>
+}
+
+export type testUnion_data_union_Potato_id = string
 
 export const testMethods = query<testMethods_variables, testMethods_data>(gql`
   query testMethods(

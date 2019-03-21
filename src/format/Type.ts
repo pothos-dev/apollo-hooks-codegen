@@ -25,6 +25,9 @@ export function formatType(type: TypeIR): string {
   for (const field of type.fields || []) {
     output += formatType(field)
   }
+  for (const unionPart of type.union || []) {
+    output += formatType(unionPart)
+  }
 
   return output
 }
