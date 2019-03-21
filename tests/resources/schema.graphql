@@ -72,10 +72,12 @@ type NestedObjectType {
 
 type Tomato {
   id: ID
+  color: String
 }
 
 type Potato {
   id: ID
+  origin: String
 }
 
 union UnionType = Tomato | Potato

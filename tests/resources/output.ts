@@ -154,9 +154,11 @@ export const testUnion = query<testUnion_variables, testUnion_data>(gql`
     union {
       ... on Tomato {
         id
+        color
       }
       ... on Potato {
         id
+        origin
       }
     }
   }
@@ -170,14 +172,18 @@ export type testUnion_data_union =
   | testUnion_data_union_Potato
 export type testUnion_data_union_Tomato = {
   id?: Nullable<testUnion_data_union_Tomato_id>
+  color?: Nullable<testUnion_data_union_Tomato_color>
 }
 
 export type testUnion_data_union_Tomato_id = string
+export type testUnion_data_union_Tomato_color = string
 export type testUnion_data_union_Potato = {
   id?: Nullable<testUnion_data_union_Potato_id>
+  origin?: Nullable<testUnion_data_union_Potato_origin>
 }
 
 export type testUnion_data_union_Potato_id = string
+export type testUnion_data_union_Potato_origin = string
 
 export const testMethods = query<testMethods_variables, testMethods_data>(gql`
   query testMethods(

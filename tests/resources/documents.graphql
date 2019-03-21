@@ -33,9 +33,11 @@ query testUnion {
   union {
     ... on Tomato {
       id
+      color
     }
     ... on Potato {
       id
+      origin
     }
   }
 }
