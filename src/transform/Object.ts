@@ -45,8 +45,6 @@ function getTypeInfoFromField(
 
   const { modifiers, baseType } = getModifiersAndBaseType(schemaType)
 
-  // Todo add fragments
-
   let fields, scalar, fragments, union
   if (isObjectType(baseType)) {
     const fieldsAndFragments = transformObject(
