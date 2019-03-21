@@ -21,9 +21,8 @@ export function transformObject(
   namespace: string[],
   selectionSet: SelectionSetNode,
   object: GraphQLObjectType
-): { typename: string; fields: TypeIR[]; fragments: string[] } {
+): { fields: TypeIR[]; fragments: string[] } {
   return {
-    typename: object.name,
     fields: selectionSet.selections
       .filter(it => it.kind == 'Field')
       .map(it => getTypeInfoFromField(namespace, it as FieldNode, object)),
