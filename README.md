@@ -1,3 +1,6 @@
+### Deprecation notice
+[graphql-code-generator](https://www.npmjs.com/package/graphql-code-generator) has been deprecated.
+
 This is a plugin for [graphql-code-generator](https://github.com/dotansimha/graphql-code-generator) that generates fully typed React Hooks from queries, mutations and subscriptions in `.graphql` files.
 
 ## Getting started
